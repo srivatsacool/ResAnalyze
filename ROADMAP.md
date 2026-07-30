@@ -12,8 +12,8 @@
 | Stage 0 | Research & Planning | ✅ Complete |
 | Stage 1 | Part I — Foundations & NLP Mastery (00–25) | ✅ Complete |
 | Stage 2 | Part II — Resume & Job Intelligence (26–54) | ✅ Complete |
-| Stage 3 | Python Package (`shared/` engines) | 🔲 Not started |
-| Stage 4 | FastAPI + UI prototype | 🔲 Not started |
+| Stage 3 | Part III — LLM Engineering & Evaluation (55–69) | ✅ Complete |
+| Stage 4 | Python Package + API | 🔲 Not started |
 
 ---
 
@@ -102,13 +102,38 @@
 
 ---
 
+## Stage 3 — Part III: LLM Engineering & Evaluation ✅
+
+**Notebooks 55–69 · 2 Blocks**
+
+### Block J: LLM Engineering (55–63) ✅
+- [x] 55 — OpenRouter Setup
+- [x] 56 — Prompt Engineering
+- [x] 57 — Prompt Versioning
+- [x] 58 — JSON Structured Output
+- [x] 59 — Tool Calling for Resume Tasks
+- [x] 60 — Weak Bullet Rewriter
+- [x] 61 — STAR Bullet Generator
+- [x] 62 — Career Advisor
+- [x] 63 — Model Comparison
+
+### Block K: Evaluation (64–69) ✅
+- [x] 64 — Precision & Recall for NLP
+- [x] 65 — F1 Score & Confusion Matrix
+- [x] 66 — Hallucination Testing
+- [x] 67 — A/B Prompt Testing
+- [x] 68 — Human Evaluation Protocol
+- [x] 69 — Latency Profiling
+
+---
+
 ## Milestone Log
 
 | Milestone | Target | Actual | Status |
 |-----------|--------|--------|--------|
 | v0.1 — Flat directory structure | Jul 30 | Jul 30 | ✅ |
 | v0.2 — Architecture & Planning | Jul 30 | Jul 30 | ✅ |
-| v0.3 — 55 Notebooks (Part I + II) | Jul 30 | Jul 30 | ✅ |
-| v0.4 — Python `shared/` package | TBD | — | 🔲 |
-| v0.5 — FastAPI + MCP server | TBD | — | 🔲 |
-| v0.6 — UI prototype | TBD | — | 🔲 |
+| v0.3 | 55 Notebooks (Part I + II) | Jul 30 | Jul 30 | ✅ |
+| v0.4 | 70 Notebooks (Part I + II + III J-K) | Jul 30 | Jul 30 | ✅ |
+| v0.5 | Python `shared/` package | TBD | — | 🔲 |
+| v0.6 | FastAPI + MCP server | TBD | — | 🔲 |

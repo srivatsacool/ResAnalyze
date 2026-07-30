@@ -575,9 +575,9 @@ The 70-notebook learning path is divided into three tightly scoped parts. Each p
 
 ---
 
-## PART III — LLM Engineering & Production (Deferred)
+## PART III — LLM Engineering & Evaluation ✅
 
-> **Status:** Deferred. LLM/prompt engineering notebooks (Blocks J, K, L) are not part of the current scope. The architecture remains designed to accommodate them in the future — the `shared/` package, MCP tool surface, and modular engine pattern are all LLM-ready.
+> **Status:** Complete. Blocks J (LLM Engineering, 55–63) and K (Evaluation, 64–69) are covered. Block L (Production Pipeline, 70–75) remains deferred.
 
 ---
 

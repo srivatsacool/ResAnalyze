@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0-alpha] - 2026-07-30
+
+### Added
+- Block J (55–63): LLM Engineering — OpenRouter setup, prompt engineering, versioning, structured output, tool calling, weak bullet rewriter, STAR generator, career advisor, model comparison.
+- Block K (64–69): Evaluation — Precision/Recall/F1, confusion matrices, hallucination testing, A/B prompt testing, human evaluation protocol, latency profiling.
+
+### Changed
+- PLAN.md: Part III status updated from "Deferred" to "Complete (J-K)".
+- ROADMAP.md: Added Stage 3 (Part III) with all 15 notebooks marked ✅.
+
 ## [0.3.0-alpha] - 2026-07-30
 
 ### Added
