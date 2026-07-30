@@ -1,53 +1,41 @@
-# AI Resume Intelligence Platform — Roadmap
+# ResAnalyze — Roadmap
 
-> Live document. Last updated: 2026-07-30 13:04:37+05:30 (1:04 PM IST).
+> **Status:** All 55 notebooks complete (Part I + Part II). See PLAN.md for architecture.
+> **Last updated:** 2026-07-30 15:37 IST (Thursday, July 30, 2026)
 
 ---
 
 ## Stage Status
 
-| Stage | Focus | Status | Last Updated |
-|-------|-------|--------|--------------|
-| Stage 0 | Research & Planning | ✅ Complete | 2026-07-30 |
-| Stage 1 | Part I Notebooks — Foundations & NLP (00–25) | 🔲 In Progress (Blocks A-C complete) | 2026-07-30 |
-| Stage 2 | Part II Notebooks — Resume & Job Intelligence (26–54) | 🔲 Planned | - |
+| Stage | Focus | Status |
+|-------|-------|--------|
+| Stage 0 | Research & Planning | ✅ Complete |
+| Stage 1 | Part I — Foundations & NLP Mastery (00–25) | ✅ Complete |
+| Stage 2 | Part II — Resume & Job Intelligence (26–54) | ✅ Complete |
+| Stage 3 | Python Package (`shared/` engines) | 🔲 Not started |
+| Stage 4 | FastAPI + UI prototype | 🔲 Not started |
 
 ---
 
-## Stage 0 — Research & Planning ✅
-
-- [x] Define executive objectives, success criteria, and non-goals.
-- [x] Define canonical `ResumeSchema` (Pydantic model contract).
-- [x] Define MCP tool surface (8 tools with typed contracts).
-- [x] Define shared service architecture (`shared/` package).
-- [x] Define pipeline configuration pattern (YAML-driven).
-- [x] Define all notebooks across 2 parts (55 total).
-- [x] Establish feature definitions (10 core features).
-- [x] Establish project directory structure with `.gitkeep` files.
-- [x] Create `README.md`, `PLAN.md`, `CHANGELOG.md`, `.gitignore`, `.env.example`, `LICENSE`.
-- [x] Initialize Git repository, first commit.
-
----
-
-## Stage 1 — Part I: Foundations & NLP Mastery 🔲
+## Stage 1 — Part I: Foundations & NLP Mastery ✅
 
 **Notebooks 00–25 · 4 Blocks**
 
 ### Block A: Environment & Tooling (00–03) ✅
 - [x] 00 — Environment Setup
 - [x] 01 — Python Engineering Refresher
-- [x] 02 — Pandas & NumPy
-- [x] 03 — Regex Mastery
+- [x] 02 — Pandas & NumPy for Resume Analysis
+- [x] 03 — Regex Mastery for Resume Parsing
 
 ### Block B: NLP Pipeline (04–12) ✅
-- [x] 04 — NLP Introduction
+- [x] 04 — NLP Introduction for Resume Analysis
 - [x] 05 — Tokenization
 - [x] 06 — Text Normalization
 - [x] 07 — Stop Words
 - [x] 08 — Lemmatization
 - [x] 09 — Stemming
-- [x] 10 — POS Tagging
-- [x] 11 — Dependency Parsing
+- [x] 10 — POS Tagging for Skill Extraction
+- [x] 11 — Dependency Parsing for Relations
 - [x] 12 — Named Entity Recognition
 
 ### Block C: Text Representation (13–20) ✅
@@ -60,71 +48,67 @@
 - [x] 19 — Word2Vec
 - [x] 20 — FastText
 
-### Block D: Semantic Embeddings (21–25)
-- [ ] 21 — GloVe
-- [ ] 22 — Sentence Transformers
-- [ ] 23 — Embedding Benchmarks
-- [ ] 24 — Zero-Shot Classification
-- [ ] 25 — Error Handling in NLP
-
-**Deliverable:** Reusable NLP utility library + deep conceptual understanding.
+### Block D: Semantic Embeddings (21–25) ✅
+- [x] 21 — GloVe
+- [x] 22 — Sentence Transformers
+- [x] 23 — Embedding Benchmarks
+- [x] 24 — Zero-Shot Classification
+- [x] 25 — Error Handling in NLP
 
 ---
 
-## Stage 2 — Part II: Resume & Job Intelligence 🔲
+## Stage 2 — Part II: Resume & Job Intelligence ✅
 
 **Notebooks 26–54 · 5 Blocks**
 
-### Block E: Document Parsing (26–31)
-- [ ] 26 — PDF Parsing
-- [ ] 27 — DOCX Parsing
-- [ ] 28 — OCR Basics
-- [ ] 29 — Text Normalization for Resumes
-- [ ] 30 — Language Detection
-- [ ] 31 — Parsing Error Handling
+### Block E: Document Parsing (26–31) ✅
+- [x] 26 — PDF Parsing
+- [x] 27 — DOCX Parsing
+- [x] 28 — OCR Basics
+- [x] 29 — Text Normalization for Resumes
+- [x] 30 — Language Detection
+- [x] 31 — Parsing Error Handling
 
-### Block F: Resume Information Extraction (32–39)
-- [ ] 32 — Resume Section Detection
-- [ ] 33 — Skill Extraction (Rules)
-- [ ] 34 — Skill Normalization Engine (ESCO + fuzzy + embedding)
-- [ ] 35 — Education Parsing
-- [ ] 36 — Experience Parsing
-- [ ] 37 — Bullet Parsing & STAR Scoring
-- [ ] 38 — Project Extraction
-- [ ] 39 — Resume JSON Schema — Live Build
+### Block F: Resume Information Extraction (32–39) ✅
+- [x] 32 — Section Detection
+- [x] 33 — Skill Extraction (Rules)
+- [x] 34 — Skill Normalization Engine
+- [x] 35 — Education Parsing
+- [x] 36 — Experience Parsing
+- [x] 37 — Bullet Parsing & STAR Scoring
+- [x] 38 — Project Extraction
+- [x] 39 — Resume JSON Schema
 
-### Block G: Job Description Intelligence (40–45)
-- [ ] 40 — JD Parsing
-- [ ] 41 — JD Skill Extraction
-- [ ] 42 — Responsibility Detection
-- [ ] 43 — Qualification Detection
-- [ ] 44 — Keyword Ranking
-- [ ] 45 — Requirement Classification
+### Block G: Job Description Intelligence (40–45) ✅
+- [x] 40 — JD Parsing
+- [x] 41 — JD Skill Extraction
+- [x] 42 — Responsibility Detection
+- [x] 43 — Qualification Detection
+- [x] 44 — Keyword Ranking
+- [x] 45 — Requirement Classification
 
-### Block H: Semantic Matching (46–49)
-- [ ] 46 — Resume vs JD Matching
-- [ ] 47 — FAISS Vector Search
-- [ ] 48 — ChromaDB
-- [ ] 49 — Embedding Evaluation & Benchmark
+### Block H: Semantic Matching (46–49) ✅
+- [x] 46 — Resume vs JD Matching
+- [x] 47 — FAISS Vector Search
+- [x] 48 — ChromaDB
+- [x] 49 — Embedding Evaluation & Benchmark
 
-### Block I: ATS Scoring Engine (50–54)
-- [ ] 50 — ATS Rule Design
-- [ ] 51 — Explainable Scoring
-- [ ] 52 — ATS Simulation Mode (3 modes)
-- [ ] 53 — Skill Gap Analysis
-- [ ] 54 — Resume Ranking
-
-**Deliverable:** Tested extraction and scoring pipeline producing a valid `ATSReport`.
+### Block I: ATS Scoring (50–54) ✅
+- [x] 50 — ATS Rule Design
+- [x] 51 — Explainable Scoring
+- [x] 52 — ATS Simulation Mode
+- [x] 53 — Skill Gap Analysis
+- [x] 54 — Resume Ranking
 
 ---
 
-## Version 1.0 Milestone
+## Milestone Log
 
-Version 1.0 is reached when:
-- All 55 notebooks are complete and documented.
-- Full pipeline runs end-to-end producing a valid `ATSReport`.
-- All 10 features are working in the web UI.
-- All 8 MCP tools are working and tested.
-- Backend is deployed to Cloud Run.
-- Frontend is deployed to Cloudflare Pages.
-- CI/CD is active.
+| Milestone | Target | Actual | Status |
+|-----------|--------|--------|--------|
+| v0.1 — Flat directory structure | Jul 30 | Jul 30 | ✅ |
+| v0.2 — Architecture & Planning | Jul 30 | Jul 30 | ✅ |
+| v0.3 — 55 Notebooks (Part I + II) | Jul 30 | Jul 30 | ✅ |
+| v0.4 — Python `shared/` package | TBD | — | 🔲 |
+| v0.5 — FastAPI + MCP server | TBD | — | 🔲 |
+| v0.6 — UI prototype | TBD | — | 🔲 |
