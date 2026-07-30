@@ -575,52 +575,9 @@ The 70-notebook learning path is divided into three tightly scoped parts. Each p
 
 ---
 
-## PART III — LLM Engineering & Production
-**Goal:** Apply LLMs selectively and correctly, evaluate everything, and ship production-ready code.
-**Output:** A tested, deployable Python package and API prototype.
-**Notebooks:** 55 – 75
+## PART III — LLM Engineering & Production (Deferred)
 
----
-
-### Block J: LLM Engineering (Notebooks 55–63)
-
-| # | Notebook | Key Concepts | Library |
-|---|---|---|---|
-| 55 | OpenRouter Setup | API setup, model selection, cost tracking, rate limits | openai client |
-| 56 | Prompt Engineering | Few-shot, chain-of-thought, system prompts; resume domain | — |
-| 57 | Prompt Versioning | Registry pattern, version tracking, golden test sets | — |
-| 58 | JSON Structured Output | `response_format`, Pydantic parsing, fallback handling | instructor |
-| 59 | Function / Tool Calling | Tools API; routing decisions to specialized engines | openai client |
-| 60 | Weak Bullet Rewriter | Selective rewrite; only trigger LLM on failing bullets | — |
-| 61 | STAR Bullet Generator | Generate STAR-format bullets from raw experience data | — |
-| 62 | Career Advisor | Role-aware career guidance; JD-grounded recommendations | — |
-| 63 | Model Comparison | Gemini vs Llama vs Claude on resume tasks; cost/quality | OpenRouter |
-
----
-
-### Block K: Evaluation (Notebooks 64–69)
-
-| # | Notebook | Key Concepts | Library |
-|---|---|---|---|
-| 64 | Precision & Recall for NLP | TP/FP/FN for entity extraction; micro vs. macro avg | sklearn |
-| 65 | F1 Score & Confusion Matrix | Multi-class evaluation; skill extraction benchmarks | sklearn |
-| 66 | Hallucination Testing | Factual grounding checks; resume-to-output consistency | — |
-| 67 | A/B Prompt Testing | Quantitative comparison of prompt variants on golden set | — |
-| 68 | Human Evaluation Protocol | Annotation guidelines, inter-annotator agreement, kappa | — |
-| 69 | Latency Profiling | Where time is spent: parsing, embedding, LLM; bottlenecks | cProfile |
-
----
-
-### Block L: Production Pipeline (Notebooks 70–75)
-
-| # | Notebook | Key Concepts | Library |
-|---|---|---|---|
-| 70 | End-to-End Pipeline | Run all engines in sequence; validate `ResumeSchema` output | — |
-| 71 | Pipeline Config Pattern | YAML-driven pipeline; swap engines without code changes | PyYAML |
-| 72 | Caching Layer | Document hash → embedding cache; hit rate metrics | hashlib |
-| 73 | Feedback Loop | Thumbs up/down storage; correction dataset builder | SQLite |
-| 74 | Modularization | Refactor notebooks into the `shared/` package; write tests | pytest |
-| 75 | API Prototype | Minimal FastAPI wrapper around shared engines; OpenAPI docs | FastAPI |
+> **Status:** Deferred. LLM/prompt engineering notebooks (Blocks J, K, L) are not part of the current scope. The architecture remains designed to accommodate them in the future — the `shared/` package, MCP tool surface, and modular engine pattern are all LLM-ready.
 
 ---
 
@@ -628,9 +585,8 @@ The 70-notebook learning path is divided into three tightly scoped parts. Each p
 
 | Part | Notebooks | Purpose | Output |
 |---|---|---|---|
-| **I — Foundations & NLP Mastery** | 00–25 (26 notebooks) | Master NLP algorithms from scratch | NLP utility library |
-| **II — Resume & Job Intelligence** | 26–54 (29 notebooks) | Build every extraction and scoring engine | Tested engine pipeline |
-| **III — LLM Engineering & Production** | 55–75 (21 notebooks) | Apply LLMs correctly, evaluate, and ship | Deployable shared package |
+| **Part I — Foundations & NLP Mastery** | 00–25 (26 notebooks) | Master NLP algorithms from scratch | NLP utility library |
+| **Part II — Resume & Job Intelligence** | 26–54 (29 notebooks) | Build every extraction and scoring engine | Tested engine pipeline |
 
 ---
 
@@ -794,12 +750,6 @@ Stage 0 — Research & Planning     ← CURRENT (complete)
 Stage 1 — Part I Notebooks        ← NLP foundations (Notebooks 00–25)
          ↓
 Stage 2 — Part II Notebooks       ← Intelligence engines (Notebooks 26–54)
-         ↓
-Stage 3 — Part III Notebooks      ← LLM + Production (Notebooks 55–75)
-         ↓
-Stage 4 — Application Build       ← FastAPI backend + React frontend
-         ↓
-Stage 5 — MCP & Deployment        ← MCP server + Docker + Cloud Run
          ↓
 Version 1.0
 ```

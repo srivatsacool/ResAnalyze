@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0-alpha] - 2026-07-30
+
+### Added
+- Created 21 working notebooks for Part I Blocks A, B, C (00–20) with detailed explanations and runnable code.
+  - Block A (00–03): Environment Setup, Python Refresher, Pandas/NumPy, Regex Mastery
+  - Block B (04–12): NLP Pipeline — Tokenization, Normalization, Stop Words, Lemmatization, Stemming, POS Tagging, Dependency Parsing, NER
+  - Block C (13–20): Text Representation — Chunking, Keyword Extraction, BoW, TF-IDF, N-Grams, Cosine Similarity, Word2Vec, FastText
+
+### Changed
+- Scoped project to focus on core NLP + Resume Intelligence only.
+- Deferred Part III (LLM Engineering, Evaluation, Production Pipeline) as out-of-scope.
+- Reduced notebook count from 76 → 55 (Blocks A–I, deferred J–L).
+- Cleaned up duplicate directory structure (removed old flat 00-15 dirs and part3_production).
+- Updated `ROADMAP.md` to 2-stage plan (Part I → Part II notebooks → v1.0).
+- Updated `PLAN.md` Part III section to "Deferred" status, removed Blocks J–L details.
+
 ## [0.2.0-alpha] - 2026-07-30
 
 ### Added
