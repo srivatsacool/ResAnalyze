@@ -23,7 +23,6 @@ coverage.xml
 # Jupyter Notebook
 .ipynb_checkpoints
 */.ipynb_checkpoints/*
-*.ipynb
 
 # Node / Frontend
 node_modules/
