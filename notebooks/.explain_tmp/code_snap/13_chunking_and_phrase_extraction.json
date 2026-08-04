@@ -1,0 +1,22 @@
+[
+ {
+  "index": 3,
+  "id": "6f0d3f0d",
+  "source": "import spacy\nnlp = spacy.load(\"en_core_web_sm\")\ntext = \"Senior data scientist with strong Python skills and deep learning expertise\"\ndoc = nlp(text)\nfor chunk in doc.noun_chunks:\n    print(f\"  '{chunk.text:35s}' root: {chunk.root.text:10s} ({chunk.root.pos_})\")"
+ },
+ {
+  "index": 5,
+  "id": "d4443251",
+  "source": "resumes = [\n    \"Expert in Python, Machine Learning, and Deep Learning\",\n    \"Skilled in Natural Language Processing and Computer Vision\",\n    \"Proficient with TensorFlow, PyTorch, and Cloud Computing\",\n]\ndef extract_phrases(text):\n    doc = nlp(text)\n    return [chunk.text for chunk in doc.noun_chunks if chunk.root.pos_ in (\"NOUN\", \"PROPN\")]\n\nfor r in resumes:\n    print(f\"  '{r}'\")\n    print(f\"    phrases: {extract_phrases(r)}\")"
+ },
+ {
+  "index": 7,
+  "id": "725a6d80",
+  "source": "def verb_phrases(text):\n    doc = nlp(text)\n    vps = []\n    for token in doc:\n        if token.pos_ == \"VERB\":\n            obj = next((c.text for c in token.children if c.dep_ == \"dobj\"), None)\n            prep = next((c.text for c in token.children if c.dep_ == \"prep\"), None)\n            vps.append((token.text, obj, prep))\n    return vps\n\ntext = \"Developed ML models with TensorFlow and led teams\"\nprint(f\"  Verb phrases: {verb_phrases(text)}\")"
+ },
+ {
+  "index": 9,
+  "id": "7036f4ef",
+  "source": "# Chunk-based phrase indexing\ndef extract_skill_chunks(text, skills_db):\n    doc = nlp(text)\n    found = set()\n    for chunk in doc.noun_chunks:\n        for skill in skills_db:\n            if skill.lower() in chunk.text.lower():\n                found.add((skill, chunk.text))\n    return found\n\nskills = {\"Python\", \"Machine Learning\", \"Deep Learning\", \"TensorFlow\", \"NLP\"}\nprint(extract_skill_chunks(\"Expert in Python and Machine Learning applications\", skills))"
+ }
+]

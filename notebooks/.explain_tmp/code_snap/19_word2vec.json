@@ -1,0 +1,27 @@
+[
+ {
+  "index": 3,
+  "id": "e89155b8",
+  "source": "from gensim.models import Word2Vec\nsentences = [\n    [\"python\", \"is\", \"great\", \"for\", \"nlp\", \"and\", \"machine\", \"learning\"],\n    [\"tensorflow\", \"is\", \"a\", \"deep\", \"learning\", \"framework\"],\n    [\"data\", \"scientist\", \"uses\", \"python\", \"for\", \"analysis\"],\n    [\"machine\", \"learning\", \"engineer\", \"builds\", \"models\"],\n    [\"nlp\", \"engineer\", \"works\", \"with\", \"text\", \"data\"],\n    [\"python\", \"developer\", \"writes\", \"code\", \"daily\"],\n]\nmodel = Word2Vec(sentences, vector_size=50, window=3, min_count=1, epochs=100)\nprint(f\"Vocabulary size: {len(model.wv)}\")\nprint(f\"Vector for 'python': shape {model.wv['python'].shape}\")\nprint(f\"First 10 dims: {model.wv['python'][:10].round(3)}\")"
+ },
+ {
+  "index": 5,
+  "id": "b20ed314",
+  "source": "pairs = [(\"python\", \"nlp\"), (\"python\", \"tensorflow\"), (\"python\", \"data\"),\n         (\"python\", \"code\"), (\"python\", \"great\")]\nfor w1, w2 in pairs:\n    if w1 in model.wv and w2 in model.wv:\n        sim = model.wv.similarity(w1, w2)\n        print(f\"  sim('{w1}', '{w2}') = {sim:.3f}\")"
+ },
+ {
+  "index": 7,
+  "id": "d2a3ae54",
+  "source": "for word in [\"python\", \"learning\", \"engineer\"]:\n    if word in model.wv:\n        similar = model.wv.most_similar(word, topn=3)\n        print(f\"\\nWords similar to '{word}':\")\n        for w, s in similar:\n            print(f\"  {w:12s} {s:.3f}\")"
+ },
+ {
+  "index": 9,
+  "id": "1b3fe6fc",
+  "source": "# Classic: king - man + woman = queen\ntry:\n    result = model.wv.most_similar(positive=[\"python\"], topn=3)\n    print(f\"Similar to 'python': {result}\")\nexcept KeyError as e:\n    print(f\"Word not in vocabulary: {e}\")"
+ },
+ {
+  "index": 11,
+  "id": "bfc4492b",
+  "source": "def doc_vector(words, model):\n    words = [w for w in words if w in model.wv]\n    if not words:\n        return None\n    return np.mean([model.wv[w] for w in words], axis=0)\n\nimport numpy as np\ndocs = [\n    \"python machine learning nlp\",\n    \"tensorflow deep learning framework\",\n    \"java spring backend developer\",\n]\nvectors = [doc_vector(d.split(), model) for d in docs]\nif vectors[0] is not None and vectors[1] is not None:\n    sim_ml = cosine_similarity([vectors[0]], [vectors[1]])[0][0]\n    sim_diff = cosine_similarity([vectors[0]], [vectors[2]])[0][0]\n    print(f\"\\nDocument similarity:\")\n    print(f\"  Doc1 vs Doc2 (ML related):     {sim_ml:.3f}\")\n    print(f\"  Doc1 vs Doc3 (different area): {sim_diff:.3f}\")"
+ }
+]

@@ -1,0 +1,8 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/515 [00:00<?, ?it/s]Loading weights:  66%|██████▌   | 338/515 [00:00<00:00, 3370.89it/s]Loading weights: 100%|██████████| 515/515 [00:00<00:00, 3184.65it/s]
+'5+ years experience in Python           ' -> nice-to-have    (0.50)
+'Strong communication skills             ' -> nice-to-have    (0.50)
+'PhD in Computer Science preferred       ' -> preferred       (0.77)
+'Experience with AWS or GCP              ' -> nice-to-have    (0.57)
+'Published research papers a plus        ' -> nice-to-have    (0.56)
+'Ability to work in fast-paced environmen' -> nice-to-have    (0.50)

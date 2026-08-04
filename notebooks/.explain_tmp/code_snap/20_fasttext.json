@@ -1,0 +1,22 @@
+[
+ {
+  "index": 3,
+  "id": "a4f3d113",
+  "source": "from gensim.models import FastText\nsentences = [\n    [\"python\", \"deep\", \"learning\", \"framework\"],\n    [\"nlp\", \"with\", \"python\", \"is\", \"powerful\"],\n    [\"data\", \"science\", \"uses\", \"machine\", \"learning\"],\n    [\"python\", \"programming\", \"language\", \"for\", \"data\"],\n]\nft = FastText(sentences, vector_size=50, window=3, min_count=1, epochs=100)\nprint(f\"Vocabulary: {len(ft.wv)}\")\nprint(f\"Vector for 'python': shape {ft.wv['python'].shape}\")"
+ },
+ {
+  "index": 5,
+  "id": "e25feb75",
+  "source": "# Word2Vec would fail here — FastText uses subword n-grams\noov_words = [\"pythoning\", \"pyton\", \"tensorflo\", \"lernin\", \"progamming\"]\nfor w in oov_words:\n    try:\n        vec = ft.wv[w]  # FastText can infer from subwords\n        print(f\"  '{w}' -> VECTOR FOUND (via subwords)\")\n    except KeyError:\n        print(f\"  '{w}' -> NOT FOUND\")\n\n# Compare with similar known word\nfor w in oov_words:\n    if w in ft.wv:\n        similar = ft.wv.most_similar(w, topn=2)\n        print(f\"  '{w}' similar to: {similar}\")"
+ },
+ {
+  "index": 7,
+  "id": "b75f92f4",
+  "source": "import numpy as np\nfrom sklearn.metrics.pairwise import cosine_similarity\n\n# Correct vs misspelled\npairs = [(\"python\", \"pyton\"), (\"learning\", \"lernin\"), (\"tensorflow\", \"tensorflo\")]\nfor correct, typo in pairs:\n    if correct in ft.wv and typo in ft.wv:\n        sim = cosine_similarity([ft.wv[correct]], [ft.wv[typo]])[0][0]\n        print(f\"  sim('{correct}', '{typo}') = {sim:.3f}\")\n\n# Compare with Word2Vec\nprint(\"\\nWord2Vec would throw KeyError on typos.\")\nprint(\"FastText gracefully handles misspellings via subword n-grams.\")"
+ },
+ {
+  "index": 9,
+  "id": "e2fe00f3",
+  "source": "# FastText stores character n-grams\nword = \"python\"\nprint(f\"Subword n-grams for '{word}' (n=3):\")\nif hasattr(ft.wv, 'ngrams'):\n    from gensim.models.fasttext import compute_ngrams\n    ngrams = compute_ngrams(word, 3, 6)\n    print(f\"  {ngrams}\")\n\n# This means \"pyton\" shares many n-grams with \"python\" -> similar vectors\nprint(\"\\nThis is why FastText handles typos — shared character sequences!\")"
+ }
+]

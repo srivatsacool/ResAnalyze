@@ -1,0 +1,17 @@
+[
+ {
+  "index": 4,
+  "id": "5de5bf1c",
+  "source": "from sklearn.feature_extraction.text import CountVectorizer\ndocs = [\n    \"Python is great for NLP\",\n    \"NLP with Python is fun\",\n    \"Machine learning with Python\",\n]\nvec = CountVectorizer()\nmatrix = vec.fit_transform(docs)\nprint(f\"Vocabulary: {vec.get_feature_names_out()}\")\nprint(f\"Matrix shape: {matrix.shape}\")\nprint(f\"First doc: {matrix[0].toarray()[0]}\")"
+ },
+ {
+  "index": 6,
+  "id": "9f4a3ada",
+  "source": "import numpy as np\nfor max_f in [5, 10, 20, 50]:\n    v = CountVectorizer(max_features=max_f, stop_words=\"english\")\n    m = v.fit_transform(docs)\n    sparsity = 1 - m.nnz / (m.shape[0] * m.shape[1])\n    print(f\"max_features={max_f:3d}: vocab={len(v.get_feature_names_out()):3d}, sparsity={sparsity:.3f}\")\n\nprint(\"\\nKey insight: BoW produces highly sparse vectors (>90% zeros).\")"
+ },
+ {
+  "index": 8,
+  "id": "3927bc0a",
+  "source": "resumes = [\n    \"Data scientist Python TensorFlow machine learning\",\n    \"Python developer Django Flask backend engineer\",\n    \"ML engineer TensorFlow PyTorch deep learning\",\n]\nvec = CountVectorizer(binary=True, stop_words=\"english\")\nX = vec.fit_transform(resumes)\nprint(\"Resume-Keyword matrix (binary):\")\nprint(vec.get_feature_names_out())\nprint(X.toarray())\nprint(f\"\\nResume 1 and 2 share {sum(X[0].multiply(X[1]).toarray()[0])} words\")\nprint(f\"Resume 1 and 3 share {sum(X[0].multiply(X[2]).toarray()[0])} words\")"
+ }
+]

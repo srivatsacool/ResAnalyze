@@ -1,0 +1,17 @@
+[
+ {
+  "index": 3,
+  "id": "50c19ec0",
+  "source": "from sklearn.feature_extraction.text import CountVectorizer\ndoc = \"machine learning is fun and deep learning is powerful\"\nfor n in [1, 2, 3]:\n    v = CountVectorizer(ngram_range=(n, n)).fit([doc])\n    print(f\"\\n{n}-grams ({len(v.get_feature_names_out())}):\")\n    print(f\"  {v.get_feature_names_out()[:10]}\")"
+ },
+ {
+  "index": 5,
+  "id": "837fe9a6",
+  "source": "docs = [\n    \"Expert in machine learning and deep learning\",\n    \"Experience with natural language processing\",\n    \"Skilled in data science and computer vision\",\n]\nvec = CountVectorizer(ngram_range=(1, 3), stop_words=\"english\")\nX = vec.fit_transform(docs)\nfeatures = vec.get_feature_names_out()\nscores = np.array(X.sum(axis=0)).flatten()\nprint(\"Top n-gram features:\")\nfor f, s in sorted(zip(features, scores), key=lambda x: -x[1])[:10]:\n    print(f\"  {f:25s} {s}\")"
+ },
+ {
+  "index": 7,
+  "id": "35829f92",
+  "source": "def ngram_overlap(a, b, n=2):\n    va = CountVectorizer(ngram_range=(n, n), analyzer=\"char\").fit([a])\n    vb = CountVectorizer(ngram_range=(n, n), analyzer=\"char\").fit([b])\n    a_ng = set(va.get_feature_names_out())\n    b_ng = set(vb.get_feature_names_out())\n    return len(a_ng & b_ng) / len(a_ng | b_ng) if (a_ng | b_ng) else 0\n\na = \"data scientist python\"\nb = \"data analyst python\"\nprint(f\"Bigram overlap: {ngram_overlap(a, b):.3f}\")\nprint(f\"Trigram overlap: {ngram_overlap(a, b, 3):.3f}\")"
+ }
+]

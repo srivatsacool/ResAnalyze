@@ -1,0 +1,17 @@
+[
+ {
+  "index": 3,
+  "id": "52b30e5e",
+  "source": "from sklearn.feature_extraction.text import TfidfVectorizer\nimport numpy as np\ndocs = [\n    \"Python developer with machine learning and NLP experience\",\n    \"Data scientist skilled in Python, SQL, and machine learning\",\n    \"ML engineer building deep learning models with TensorFlow\",\n]\nvec = TfidfVectorizer(stop_words=\"english\", max_features=20)\nmatrix = vec.fit_transform(docs)\nscores = np.array(matrix.sum(axis=0)).flatten()\nterms = vec.get_feature_names_out()\nranked = sorted(zip(terms, scores), key=lambda x: -x[1])\nprint(\"TF-IDF Keywords:\")\nfor term, score in ranked:\n    print(f\"  {term:15s} {score:.3f}\")"
+ },
+ {
+  "index": 5,
+  "id": "5afacce0",
+  "source": "# Simple RAKE implementation\nimport re\nfrom collections import Counter, defaultdict\ndef rake(text, stopwords=None):\n    if stopwords is None:\n        stopwords = {\"the\", \"a\", \"an\", \"and\", \"or\", \"of\", \"in\", \"to\", \"for\", \"is\", \"on\", \"at\"}\n    phrases = re.split(r\"[.,!?;:()]\", text.lower())\n    candidates = []\n    for phrase in phrases:\n        words = [w for w in phrase.split() if w not in stopwords and len(w) > 2]\n        if words:\n            candidates.append(\" \".join(words))\n    return Counter(candidates).most_common(10)\n\ntext = \"This candidate has strong Python and machine learning skills with deep learning expertise\"\nprint(\"RAKE keywords:\", rake(text))"
+ },
+ {
+  "index": 7,
+  "id": "86b249ea",
+  "source": "from keybert import KeyBERT\ntry:\n    kw_model = KeyBERT(model=\"all-MiniLM-L6-v2\")\n    keywords = kw_model.extract_keywords(text, keyphrase_ngram_range=(1, 2), top_n=5)\n    print(\"KeyBERT keywords:\")\n    for kw, score in keywords:\n        print(f\"  {kw:20s} {score:.3f}\")\nexcept:\n    print(\"KeyBERT not installed. Install with: pip install keybert\")\n    print(\"Fallback: use TF-IDF (see cell above)\")"
+ }
+]

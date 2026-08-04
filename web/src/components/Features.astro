@@ -1,0 +1,47 @@
+---
+const features = [
+  {
+    num: '01',
+    accent: '#818CF8',
+    title: 'ATS Match Score',
+    desc: 'Your resume scored against the same parsing logic recruiters\u2019 systems use \u2014 and which keywords your target role is actually missing.',
+    tag: 'spacy\u00b7ner \u2192 score'
+  },
+  {
+    num: '02',
+    accent: '#38BDF8',
+    title: 'Skill Gap Analysis',
+    desc: 'Every skill you mention, extracted and mapped against the roles you\u2019re applying for \u2014 so you see the gap before a recruiter does.',
+    tag: 'skill-vectors \u00b7 31 detected'
+  },
+  {
+    num: '03',
+    accent: '#F0C246',
+    title: 'Power Verb Forge',
+    desc: 'Rewrite weak bullets into measurable impact statements. 400+ verbs, tuned for ATS parsers and the humans behind them.',
+    tag: 'bullet-rewriter \u00b7 400+ verbs'
+  }
+];
+---
+<section id="features" class="relative mx-auto max-w-7xl px-6 py-24">
+  <div class="mb-12" data-reveal>
+    <p class="font-mono text-[11px] tracking-[0.25em] text-[#6B6B80]">HOW IT WORKS</p>
+    <h2 class="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">Three passes. One report.</h2>
+  </div>
+
+  <div class="grid gap-px bg-white/[0.06] md:grid-cols-3" data-reveal>
+    {features.map((f, i) => (
+      <article
+        data-reveal
+        data-reveal-delay={String(i + 1)}
+        class="bg-[#06060C] p-8"
+      >
+        <span class="font-mono text-[11px] tracking-widest text-[#6B6B80]">{f.num}</span>
+        <div class="mt-4 h-[2px] w-8" style={`background:${f.accent}`}></div>
+        <h3 class="mt-5 font-display text-lg font-bold">{f.title}</h3>
+        <p class="mt-3 text-[14px] leading-relaxed text-[#9898AC]">{f.desc}</p>
+        <p class="mt-5 font-mono text-[10px] tracking-wider text-[#5E5E72]">{f.tag}</p>
+      </article>
+    ))}
+  </div>
+</section>

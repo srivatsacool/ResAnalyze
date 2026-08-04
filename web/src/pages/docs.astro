@@ -1,0 +1,21 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import NotebookReference from '../components/NotebookReference.jsx';
+---
+<BaseLayout title="Documentation & Developer Space | ResAnalyze" description="Explore the NLP pipeline notebooks (00-54) and developer backend API references.">
+  <main class="container mx-auto px-4 py-28 min-h-screen relative z-10 space-y-16">
+    <div class="mx-auto max-w-4xl text-center">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+        Developer & <span class="gradient-text">Notebook Docs</span>
+      </h1>
+      <p class="text-white/60 max-w-xl mx-auto text-sm md:text-base font-light">
+        A deep-dive review of our 70+ notebooks pipeline, NLP parsing layers, and AST models.
+      </p>
+    </div>
+
+    {/* Notebook Interactive Preview */}
+    <section class="mx-auto max-w-5xl">
+      <NotebookReference client:only="react" />
+    </section>
+  </main>
+</BaseLayout>

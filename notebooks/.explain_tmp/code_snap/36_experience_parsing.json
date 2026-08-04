@@ -1,0 +1,17 @@
+[
+ {
+  "index": 2,
+  "id": "06dfd9e5",
+  "source": "exp_text = \"\"\"Google, Mountain View — Senior Data Scientist\nJan 2020 - Present\n- Developed NLP pipelines processing 10M+ documents daily\n- Led team of 5 ML engineers\n- Reduced model latency by 40%\n\nAmazon, Seattle — Data Scientist II\n2018 - 2020\n- Built recommendation systems\n- Improved CTR by 25%\n\"\"\"\n\nprint(\"Experience entries typically follow:\")\nprint(\"  Company, Location — Role\")\nprint(\"  Date range (start - end)\")\nprint(\"  Bullet points of achievements\")"
+ },
+ {
+  "index": 4,
+  "id": "0ccbd6e6",
+  "source": "import re\n\ndef parse_experience(text):\n    \"\"\"Extract experience entries.\"\"\"\n    entries = []\n    lines = text.split(\"\\n\")\n    current = None\n    \n    for line in lines:\n        ls = line.strip()\n        if not ls: continue\n        \n        # Company line: \"Company, Location — Role\"\n        company_match = re.match(r\"^([A-Za-z\\s.]+),?\\s*([A-Za-z\\s]+)?\\s*[—\\-–]\\s*(.+)$\", ls)\n        if company_match:\n            if current: entries.append(current)\n            current = {\"company\": company_match.group(1).strip(), \n                       \"role\": company_match.group(3).strip(), \"duration\": \"\", \"bullets\": []}\n            continue\n        \n        # Date line\n        date_match = re.search(r\"\\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec|\\d{4})\\s*\\d{0,4}\\s*-\", ls)\n        if date_match and current:\n            current[\"duration\"] = ls[:40]\n            continue\n        \n        # Bullet point\n        bullet = re.sub(r\"^[\\s•\\-*–]+\", \"\", ls)\n        if bullet and current and len(bullet) > 10:\n            current[\"bullets\"].append(bullet)\n    \n    if current: entries.append(current)\n    return entries\n\nentries = parse_experience(exp_text)\nfor e in entries:\n    print(f\"\\n  {e['company']:15s} | {e['role']:25s} | {e['duration'][:20]}\")\n    for b in e['bullets']:\n        print(f\"    - {b[:50]}...\")"
+ },
+ {
+  "index": 6,
+  "id": "d4d2b25b",
+  "source": "from datetime import datetime\n\ndef parse_duration(duration_str):\n    \"\"\"Calculate years from a duration string.\"\"\"\n    years_match = re.search(r\"(\\d+)\\s*(?:\\+)?\\s*years?\", duration_str, re.IGNORECASE)\n    if years_match: return int(years_match.group(1))\n    \n    # Try date range\n    range_match = re.findall(r\"\\b(\\d{4})\\b\", duration_str)\n    if len(range_match) >= 2:\n        return int(range_match[-1]) - int(range_match[0])\n    return 0\n\nfor d in [\"5+ years\", \"2020 - Present\", \"2018 - 2020\", \"3 years\"]:\n    print(f\"  '{d}' -> {parse_duration(d)} years\")"
+ }
+]

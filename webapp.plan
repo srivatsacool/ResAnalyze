@@ -1,0 +1,466 @@
+# WebApp: ResAnalyze - Deployment & Feature Plan
+
+## Project Overview
+AI-powered resume intelligence platform with explainable ATS scoring, skill gap analysis, and job matching capabilities. Production-ready architecture with free tier deployment strategy.
+
+## Current State Analysis
+
+### Repository Structure
+- **web/** (main web application) - Astro + React + Three.js (production-ready UI)
+- **frontend/** (legacy Astro project) - Likely for deployment 
+- **notebooks/** (70+ notebooks) - Complete ML/NLP pipeline foundation
+- **shared/** (Python package template) - Business logic foundation
+- **backend/** (empty - FastAPI backend not yet implemented)
+- **mcp/** (empty - MCP server not yet implemented)
+
+### Core Features (as designed)
+1. **Explainable ATS Scoring** - Detailed breakdown with weights
+2. **Skill Gap Analysis** - Map skills to target roles
+3. **Power Verb Forge** - ATS-friendly bullet rewriting
+4. **Interactive Dashboard** - Real-time visualizations
+5. **Resume vs JD Matching** - Semantic similarity scoring
+6. **Skill Trend Radar** - Market demand analysis
+7. **Interview Prep Connector** - STAR framework suggestions
+
+## Deployment Strategy
+
+### 1. Frontend Stack
+- **Framework**: Astro (static + islands)
+- **Build Tool**: npm run build → Vercel/Cloudflare Pages
+- **Deployment**: Vercel (optimal for Astro)
+- **Domain**: Custom domain via CloudFlare Pages
+- **Free Tier**: Vercel hobby plan ($0) + Cloudflare free
+
+### 2. Backend Stack (FastAPI)
+```python
+# Required files to create
+backend/
+├── main.py                    # FastAPI entry point
+├── requirements.txt          # Python dependencies
+├── app/
+│   ├── api/                 # Router modules
+│   │   ├── resume.py        # Resume upload/analysis endpoints
+│   │   ├── jobs.py          # Job description endpoints
+│   │   └── matching.py      # Matching logic
+│   ├── services/
+│   │   ├── resume_service.py    # Business logic
+│   │   ├── job_service.py       # Job processing
+│   │   └── ats_service.py       # ATS scoring
+│   ├── models/              # Pydantic schemas
+│   │   ├── resume.py         # ResumeSchema from PLAN.md
+│   │   ├── job.py            # JobDescriptionSchema
+│   │   └── reports.py        # ATSReport, BulletReport
+│   └── shared/              # Shared utilities
+```
+
+### 3. MCP Server (Model Context Protocol)
+```python
+# Required files to create  
+mcp/
+├── server.py                # MCP server entry point
+├── tools/
+│   ├── parse_resume.py       # parse_resume tool
+│   ├── score_resume.py       # score_resume tool  
+│   ├── extract_skills.py     # extract_skills tool
+│   └── rewrite_bullet.py     # rewrite_bullet tool
+```
+
+### 4. Shared Package Structure (from PLAN.md)
+shared/
+├── __init__.py
+├── config.py                  # pydantic-settings
+├── models/                   # ResumeSchema, JobDescriptionSchema
+├── engines/                  # All processing engines
+├── prompts/                  # Versioned LLM prompts
+└── utils/                    # Cache, logging, text utilities
+
+## Feature Implementation Plan
+
+### Phase 1: Backend Foundation (Weeks 1-2)
+
+#### 1.1 Shared Package Setup
+```python
+# shared/models/resume.py (from PLAN.md)
+class ExtractedField(BaseModel):
+    value: Any
+    confidence: float
+    source: Literal["regex", "NER", "LLM", "rule", "embedding"]
+
+# Copy complete schema from PLAN.md sections 110-170
+```
+
+#### 1.2 Core Engine Interfaces
+Create abstract base classes for all engines:
+- ResumeParserEngine
+- JobDescriptionEngine  
+- SkillNormalizerEngine
+- EmbeddingEngine
+- ATSEngine
+- BulletScorerEngine
+
+#### 1.3 Pipeline Configuration
+```yaml
+# shared/pipeline_config.yaml
+shared/pipeline_config.yaml
+pipeline:
+  - step: parse
+    engine: ResumeParserEngine
+    config:
+      ocr_fallback: true
+      encoding_repair: true
+  
+  - step: normalize_skills
+    engine: SkillNormalizerEngine
+    config:
+      use_esco: true
+      use_onet: true
+      confidence_threshold: 0.75
+  
+  - step: embed
+    engine: EmbeddingEngine
+    config:
+      model: "all-MiniLM-L6-v2"
+      cache_enabled: true
+```
+
+### Phase 2: Backend Implementation (Weeks 3-4)
+
+#### 2.1 FastAPI Backend
+```python
+# backend/main.py
+from fastapi import FastAPI, UploadFile, File, Form
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI(title="ResAnalyze API")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://resanalyze.vercel.app"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.post("/api/analyze")
+async def analyze_resume(
+    file: UploadFile = File(...),
+    job_description: str = Form(None)
+):
+    # Process resume and return analysis
+    return analysis_result
+
+@app.post("/api/health")
+async def health_check():
+    return {"status": "healthy", "version": "0.1.0"}
+```
+
+#### 2.2 Engine Implementations
+Create implementations using the patterns from notebooks:
+- **PDF/DOCX Parsing**: Use PyMuPDF, python-docx, OCR
+- **Skill Extraction**: spaCy NER + custom rules
+- **Skill Normalization**: ESCO/O*NET + rapidfuzz fallback
+- **Embeddings**: sentence-transformers + FAISS
+- **ATS Scoring**: Weighted scoring with explainability
+
+#### 2.3 API Endpoints
+```python
+# backend/app/api/resume.py
+@router.post("/upload")
+async def upload_resume(file: UploadFile = File(...)):
+    """Upload and parse resume, return ResumeSchema"""
+
+@router.post("/analyze") 
+async def analyze_resume(
+    resume_data: ResumeSchema,
+    job_description: str = Form(None)
+):
+    """Full analysis with ATS scoring and recommendations"""
+
+@router.post("/match")
+async def match_resumes(
+    resume_ids: List[str],
+    job_description: str = Form(...)
+):
+    """Compare multiple resumes against job description"""
+```
+
+### Phase 3: MCP Server (Week 5)
+
+#### 3.1 MCP Server Setup
+```python
+# mcp/server.py
+from mcp.server import Server
+import mcp.types as types
+
+server = Server("resanalyze")
+
+@server.list_tools()
+async def list_tools():
+    return [
+        types.Tool(
+            name="parse_resume",
+            description="Parse resume from PDF/DOCX/text",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "file": {"type": "string", "format": "base64"},
+                    "filename": {"type": "string"}
+                }
+            }
+        ),
+        # ... other tools from PLAN.md
+    ]
+
+@server.call_tool()
+async def call_tool(name: str, arguments: dict):
+    # Tool implementations
+    if name == "parse_resume":
+        return await parse_resume_tool(arguments)
+```
+
+#### 3.2 Tool Implementations (from PLAN.md)
+- parse_resume → ResumeParserEngine
+- score_resume → ATSEngine
+- extract_skills → SkillNormalizerEngine
+- rewrite_bullet → LLMRewriteEngine
+- detect_weak_bullets → BulletScorerEngine
+- compare_resumes → ATSEngine
+- get_skill_trends → SkillTrendEngine
+- generate_interview_prep → LLMRewriteEngine
+
+### Phase 4: Frontend Integration (Weeks 6-8)
+
+#### 4.1 Update web/ Frontend
+Current state (from web/ directory):
+- Clean Astro + React architecture
+- Three.js animations working
+- Features documented but some components missing
+
+#### 4.2 Analyze Page Implementation
+```astro
+<!-- web/src/pages/analyze.astro -->
+---
+import { analyzePage } from '../components/AnalyzePage';
+---
+<BaseLayout title="Analyze Resume">
+  <AnalyzePage client:load />
+</BaseLayout>
+```
+
+#### 4.3 Key Components Needed
+- **UploadZone** - Drag & drop with progress
+- **ResultsDashboard** - Show ATS scores, radar charts, skill gaps
+- **InteractiveVisualizations** - 3D word cloud, embedding projections
+- **JobMatchInterface** - Paste JD for matching
+
+#### 4.4 API Integration
+```typescript
+// web/src/api/client.ts
+export class ResAnalyzeAPI {
+  static async analyzeResume(file: File, jobDescription?: string) {
+    const formData = new FormData();
+    formData.append('file', file);
+    if (jobDescription) formData.append('job_description', jobDescription);
+    
+    const response = await fetch('/api/analyze', {
+      method: 'POST',
+      body: formData
+    });
+    
+    return response.json();
+  }
+}
+```
+
+## Free Tier Deployment Strategy
+
+### 1. Cloudflare Pages + Functions
+- **Frontend**: Cloudflare Pages (free) with Astro static export
+- **Backend API**: Cloudflare Functions (free tier generous)
+- **Domain**: Custom domain via Cloudflare free plan
+- **Static Assets**: Free storage
+
+### 2. GitHub Actions CI/CD
+```yaml
+# .github/workflows/deploy.yml
+time: latest
+steps:
+  - uses: actions/checkout@v4
+  
+  # Build frontend
+  - name: Build Frontend
+    run: |
+      cd frontend
+      npm run build
+      cd ..
+      cp -r frontend/dist/* web/dist/
+    
+  # Build backend  
+  - name: Build Backend
+    run: |
+      cd backend
+      pip install -r requirements.txt
+    
+  # Deploy to Cloudflare
+  - name: Deploy to Cloudflare
+    uses: cloudflare/pages-action@v1
+    with:
+      apiToken: ${{ secrets.CF_API_TOKEN }}
+      accountId: ${{ secrets.CF_ACCOUNT_ID }}
+      projectName: "resanalyze"
+      branch: "main"
+```
+
+### 3. Environment Configuration
+```bash
+# .env.example (backend)
+# OpenRouter API (free tier available)
+OPENROUTER_API_KEY=free_key_from_openrouter.ai
+OPENROUTER_MODEL=google/gemini-2.5-flash
+
+# Database (free tiers)
+DATABASE_URL=sqlite:///./resanalyze.db
+REDIS_URL=redis://localhost:6379/0
+
+# Storage (free)
+MINIO_ENDPOINT=minio:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+
+# Services (free)
+FAISS_ENABLED=true
+CHROMADB_ENABLED=true
+```
+
+## User Journey Mapping
+
+### 1. Landing Page (/)
+- **Hero**: "Your resume is read by machines before humans"
+- **Features Section**: Three core capabilities
+- **Live Demo Ticker**: Real-time scoring of sample resumes
+- **CTA**: "Analyze Your Resume" → /analyze
+
+### 2. Analyze Page (/analyze)
+**Step 1: Upload**
+- Drag & drop zone with file scanning animation (existing ScanConsole component)
+- Supported formats: PDF, DOCX, TXT, Images (OCR)
+- Progress indicators: parsing → extracting → scoring
+- Free tier: 1 analysis per user (no account required)
+
+**Step 2: Results Dashboard**
+- **Score Reveal**: Count-up animation + gradient torus ring
+- **Interview Readiness Score**: STAR framework compliance
+- **Radar Chart**: Skills | Experience | Education | Format | Impact
+- **Resume DNA Helix**: 3D double helix matching skills to JD requirements
+- **Resume X-Ray**: Show ATS machine parsing view
+
+**Step 3: Detailed Analysis**
+- **Skill Gap Analysis**: Red/green visualization with recommendations
+- **Power Verb Forge**: Before/after bullet slider
+- **NLP Explorer Tab**: Tokenized view, 3D word cloud, embedding projection
+- **Bullet Quality Scoring**: Detailed STAR breakdown
+
+### 3. Suggestions Page (/suggest)
+- **Live Job Match Engine**: Paste JD URL for real-time matching
+- **Before/After Rewrite Slider**: Bullet transformations
+- **Power Verb Forge**: Interactive verb workshop
+- **Industry Benchmarking**: Top resume overlays
+- **Role Pivot Calculator**: Transferable skills analysis
+
+## Technical Considerations
+
+### 1. Performance Optimization
+- **Astro Islands**: Minimal JS on landing page
+- **3D Optimization**: Deferred loading for Analyze page
+- **Static Generation**: Pre-render landing page, dynamic analysis pages
+- **Asset Optimization**: WebP/WebM, GLTF/GLB compression
+
+### 2. State Management
+- **Local Storage**: Recent analyses, user preferences
+- **URL State**: Shareable analysis links
+- **Session Management**: Rate limiting for free tier
+
+### 3. Free Tier Limits & Monetization
+- **Free Tier**: 1 analysis/month (resets monthly)
+- **Upgrade Path**: $9.99/month unlimited analyses
+- **Enterprise**: Custom solutions, private deployment
+
+### 4. Monitoring & Analytics
+- **Cloudflare Analytics**: User behavior, performance metrics
+- **Error Tracking**: Sentry integration
+- **Performance Monitoring**: Lighthouse CI checks
+
+## Implementation Timeline
+
+### Week 1: Foundation
+- [ ] Shared package setup (models, config, utils)
+- [ ] Backend skeleton (FastAPI app, basic endpoints)
+- [ ] Database setup (SQLite, optional Redis)
+
+### Week 2: Core Engines
+- [ ] Resume parsing engine (PDF/DOCX)
+- [ ] Skill extraction and normalization
+- [ ] Embedding generation and caching
+
+### Week 3: Analysis Logic
+- [ ] ATS scoring engine with explainability
+- [ ] Bullet quality analysis
+- [ ] Job description processing
+
+### Week 4: MCP Server
+- [ ] MCP server setup
+- [ ] Tool implementations
+- [ ] AI assistant integration
+
+### Week 5: Frontend Integration
+- [ ] Update web/ frontend components
+- [ ] Analyze page implementation
+- [ ] API client integration
+
+### Week 6: Deployment
+- [ ] Cloudflare Pages setup
+- [ ] GitHub Actions CI/CD
+- [ ] Environment configuration
+- [ ] Testing and debugging
+
+### Week 7-8: Launch Preparation
+- [ ] Documentation
+- [ ] Monitoring setup
+- [ ] User acceptance testing
+- [ ] Performance optimization
+
+## Success Metrics
+
+### Technical
+- **Build Time**: < 5 minutes
+- **Deploy Time**: < 2 minutes
+- **API Latency**: < 2 seconds for analysis
+- **Lighthouse Score**: > 90 on all pages
+
+### User Experience
+- **First Contentful Paint**: < 1.5 seconds
+- **Analysis Completion**: < 10 seconds
+- **Mobile Responsiveness**: 100% functionality
+- **Accessibility**: WCAG 2.1 AA compliance
+
+### Business
+- **User Onboarding**: < 30 seconds
+- **Conversion Rate**: 15% upgrade from free to paid
+- **Retention**: 60% monthly active users
+- **Support Tickets**: < 5% of users need help
+
+## Risk Mitigation
+
+### Technical Risks
+1. **Model Dependencies**: Use fallback models if OpenRouter fails
+2. **Storage Limits**: Implement cleanup policies for analyses
+3. **Performance**: CDN caching, database optimization
+4. **Reliability**: Health checks, graceful degradation
+
+### Business Risks
+1. **Free Tier Abuse**: Rate limiting, email verification
+2. **Data Privacy**: Clear data retention policies
+3. **Scaling**: Plan for paid tier infrastructure
+4. **Competition**: Focus on explainability and UX
+
+This plan provides a comprehensive roadmap for building a production-ready resume analysis platform with free tier deployment using Cloudflare and GitHub Actions. The architecture leverages existing foundations from the notebooks and frontend while implementing missing pieces (backend, MCP) to complete the system.

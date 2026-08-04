@@ -1,0 +1,17 @@
+[
+ {
+  "index": 2,
+  "id": "68b67984",
+  "source": "# Known skills from ESCO/O*NET taxonomy\nSKILLS_DB = {\n    \"programming\": [\"Python\", \"Java\", \"JavaScript\", \"TypeScript\", \"C++\", \"Go\", \"Rust\", \"Scala\", \"Kotlin\", \"Ruby\", \"PHP\", \"C#\", \"Swift\"],\n    \"ml_dl\": [\"TensorFlow\", \"PyTorch\", \"scikit-learn\", \"Keras\", \"XGBoost\", \"LightGBM\", \"JAX\"],\n    \"nlp\": [\"NLP\", \"spaCy\", \"NLTK\", \"Hugging Face\", \"Transformers\", \"BERT\", \"GPT\", \"LLM\"],\n    \"data\": [\"SQL\", \"Pandas\", \"NumPy\", \"Spark\", \"Hadoop\", \"Tableau\", \"Power BI\", \"Looker\"],\n    \"cloud\": [\"AWS\", \"Azure\", \"GCP\", \"Docker\", \"Kubernetes\", \"Terraform\", \"Jenkins\"],\n    \"databases\": [\"PostgreSQL\", \"MySQL\", \"MongoDB\", \"Redis\", \"Elasticsearch\", \"Cassandra\"],\n}\n\nprint(f\"Total known skills: {sum(len(v) for v in SKILLS_DB.values())}\")\nfor cat, skills in SKILLS_DB.items():\n    print(f\"  {cat:15s}: {', '.join(skills[:5])}...\")"
+ },
+ {
+  "index": 4,
+  "id": "a84191ea",
+  "source": "import re\n\ndef extract_skills_regex(text, skills_db):\n    \"\"\"Find all known skills in text using word-boundary regex.\"\"\"\n    found = []\n    text_lower = text.lower()\n    for category, skills in skills_db.items():\n        for skill in skills:\n            if re.search(r\"\\\\b\" + re.escape(skill) + r\"\\\\b\", text, re.IGNORECASE):\n                found.append({\"raw\": skill, \"category\": category, \"confidence\": 1.0, \"method\": \"exact_match\"})\n    return found\n\nresume = \"\"\"Experienced with Python, TensorFlow, and AWS.\nAlso skilled in NLP, PyTorch, and Kubernetes.\"\"\"\nskills = extract_skills_regex(resume, SKILLS_DB)\nfor s in skills:\n    print(f\"  {s['raw']:15s} -> {s['category']:15s} (conf: {s['confidence']})\")"
+ },
+ {
+  "index": 6,
+  "id": "53da64e1",
+  "source": "from rapidfuzz import fuzz, process\n\ndef extract_skills_fuzzy(text, skills_db, threshold=85):\n    \"\"\"Find skills with fuzzy matching for typos.\"\"\"\n    all_skills = [(cat, s) for cat, skills in skills_db.items() for s in skills]\n    words = re.findall(r\"\\\\b[A-Za-z#+]+\\\\b\", text)\n    found = set()\n    for word in words:\n        best_match = process.extractOne(word, [s for _, s in all_skills], scorer=fuzz.ratio)\n        if best_match and best_match[1] >= threshold:\n            cat = next(c for c, s in all_skills if s == best_match[0])\n            found.add((best_match[0], cat, best_match[1]))\n    return found\n\n# Test with typo\ntext = \"I know PyTorch, TensrFlow, and Dockr\"\nfor skill, cat, score in extract_skills_fuzzy(text, SKILLS_DB):\n    print(f\"  '{skill:15s}' -> {cat:15s} (fuzzy: {score}%)\")"
+ }
+]

@@ -1,0 +1,17 @@
+[
+ {
+  "index": 3,
+  "id": "5abdea44",
+  "source": "import numpy as np\nfrom collections import Counter\nimport math\ndocs = [\n    \"Python is a programming language for data science\",\n    \"Python is used in machine learning and data science\",\n    \"Java is another programming language\",\n]\n# Manual TF-IDF\ndef tf(word, doc):\n    words = doc.lower().split()\n    count = words.count(word.lower())\n    return count / len(words) if len(words) > 0 else 0\n\ndef idf(word, docs):\n    n_containing = sum(1 for d in docs if word.lower() in d.lower().split())\n    return math.log(len(docs) / (1 + n_containing)) + 1\n\nword = \"python\"\nprint(f\"TF-IDF for '{word}':\")\nfor i, d in enumerate(docs):\n    tfidf = tf(word, d) * idf(word, docs)\n    print(f\"  Doc {i+1}: TF={tf(word,d):.4f} x IDF={idf(word,docs):.4f} = {tfidf:.4f}\")"
+ },
+ {
+  "index": 5,
+  "id": "6fc68faa",
+  "source": "from sklearn.feature_extraction.text import TfidfVectorizer\nvec = TfidfVectorizer(stop_words=\"english\", max_features=10)\nX = vec.fit_transform(docs)\nprint(f\"Vocabulary: {vec.get_feature_names_out()}\")\nprint(\"\\nTF-IDF Matrix:\")\nfor i in range(len(docs)):\n    scores = [(w, X[i, j]) for w, j in zip(vec.get_feature_names_out(), range(X.shape[1])) if X[i, j] > 0]\n    scores.sort(key=lambda x: -x[1])\n    print(f\"  Doc {i+1}: {[(w, round(s,3)) for w, s in scores[:5]]}\")"
+ },
+ {
+  "index": 7,
+  "id": "0c36be74",
+  "source": "resume = \"python tensorflow machine learning nlp data science experience\"\njd = \"python machine learning tensorflow deep learning data science required\"\nvec = TfidfVectorizer(stop_words=\"english\")\nX = vec.fit_transform([resume, jd])\nfeatures = vec.get_feature_names_out()\nprint(f\"Shared keywords: {set(features)}\")\nfrom sklearn.metrics.pairwise import cosine_similarity\nsim = cosine_similarity(X[0:1], X[1:2])[0][0]\nprint(f\"Resume-JD TF-IDF similarity: {sim:.3f}\")"
+ }
+]

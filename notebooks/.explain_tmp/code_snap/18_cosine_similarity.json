@@ -1,0 +1,17 @@
+[
+ {
+  "index": 3,
+  "id": "9e0708d1",
+  "source": "import numpy as np\ndef cosine_sim(a, b):\n    dot = np.dot(a, b)\n    norm = np.linalg.norm(a) * np.linalg.norm(b)\n    return dot / norm if norm > 0 else 0.0\n\n# Two identical vectors\na = np.array([1, 2, 3])\nb = np.array([1, 2, 3])\nprint(f\"Identical: {cosine_sim(a, b):.3f}\")\n\n# Orthogonal vectors\nc = np.array([0, 0, 1])\nd = np.array([1, 0, 0])\nprint(f\"Orthogonal: {cosine_sim(c, d):.3f}\")\n\n# Opposite vectors\ne = np.array([1, 0])\nf = np.array([-1, 0])\nprint(f\"Opposite: {cosine_sim(e, f):.3f}\")"
+ },
+ {
+  "index": 5,
+  "id": "dde1172a",
+  "source": "from sklearn.feature_extraction.text import TfidfVectorizer\nfrom sklearn.metrics.pairwise import cosine_similarity\n\nresumes = [\n    \"Python developer with NLP and machine learning experience at Google\",\n    \"Data scientist skilled in Python, machine learning, and TensorFlow at Amazon\",\n    \"Java backend developer with Spring Boot and microservices experience at Oracle\",\n    \"ML engineer with TensorFlow, PyTorch, and MLOps experience at Microsoft\",\n]\n\nvec = TfidfVectorizer(stop_words=\"english\", max_features=50)\nX = vec.fit_transform(resumes)\nsim_matrix = cosine_similarity(X)\n\nprint(\"Resume Similarity Matrix:\")\nprint(f\"{'':25s}\", end=\"\")\nfor i in range(len(resumes)):\n    print(f\"R{i+1:5s}\", end=\"\")\nprint()\nfor i in range(len(resumes)):\n    print(f\"Resume {i+1:15s}\", end=\"\")\n    for j in range(len(resumes)):\n        print(f\"{sim_matrix[i][j]:.3f} \", end=\"\")\n    print()\n\nprint(f\"\\nR1 vs R2 (both ML/Python): {sim_matrix[0][1]:.3f}\")\nprint(f\"R1 vs R3 (different stack): {sim_matrix[0][2]:.3f}\")"
+ },
+ {
+  "index": 7,
+  "id": "f17c4ca3",
+  "source": "resume = \"python tensorflow machine learning nlp data science\"\njd_ml = \"python machine learning tensorflow deep learning ai\"\njd_java = \"java spring boot microservices oracle cloud\"\n\nvec = TfidfVectorizer()\nX = vec.fit_transform([resume, jd_ml, jd_java])\nsim = cosine_similarity(X)\nprint(f\"Resume vs ML job:     {sim[0][1]:.3f}\")\nprint(f\"Resume vs Java job:   {sim[0][2]:.3f}\")\nprint(\"\\nCosine similarity correctly identifies the better match!\")"
+ }
+]

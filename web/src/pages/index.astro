@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ScanConsole from '../components/ScanConsole.jsx';
+import Features from '../components/Features.astro';
+---
+<BaseLayout title="ResAnalyze — Your resume is read by machines before humans">
+  <!-- ═══ HERO ═══ -->
+  <header class="relative mx-auto grid min-h-screen max-w-7xl items-center gap-14 px-6 pt-32 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:pt-24">
+    <div>
+      <div class="rise rise-1 inline-flex items-center gap-2.5 rounded-full border border-white/[0.08] bg-white/[0.03] px-4 py-1.5 font-mono text-[11px] tracking-wide text-[#6B6B80]">
+        <span class="pulse-dot h-1.5 w-1.5 rounded-full bg-[#F0C246] shadow-[0_0_8px_#F0C246]"></span>
+        NLP RESUME INTELLIGENCE — 12,483 RESUMES SCANNED
+      </div>
+
+      <h1 class="mt-7 font-display text-[clamp(2.2rem,4.5vw,3.8rem)] font-bold leading-[1.08] tracking-[-0.03em]">
+        <span class="rise inline-block" style="animation-delay:0.10s">Your resume is</span><br />
+        <span class="rise inline-block" style="animation-delay:0.18s">read by machines</span><br />
+        <span class="rise inline-block" style="animation-delay:0.26s">before humans.</span>
+      </h1>
+
+      <p class="rise rise-3 mt-6 max-w-xl text-[16px] leading-relaxed text-[#9898AC]">
+        ResAnalyze parses your resume with natural-language models, extracts every
+        entity, and scores it the way applicant-tracking systems do.
+        <span class="text-[#E4E4EC]">No opinions — just the analysis.</span>
+      </p>
+
+      <div class="rise rise-4 mt-9 flex flex-wrap items-center gap-4">
+        <a href="/analyze" class="btn-primary inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-[14px] font-semibold text-white">
+          See what the machine sees
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+        <a href="#features" class="btn-ghost rounded-full px-6 py-3.5 text-[14px] font-medium text-[#E4E4EC]">How it works</a>
+      </div>
+
+      <p class="rise rise-5 mt-7 font-mono text-[11px] tracking-wide text-[#5E5E72]">
+        12,483 resumes scanned · 87 avg ATS score · free, no account
+      </p>
+    </div>
+
+    <div class="rise rise-6">
+      <ScanConsole client:load />
+    </div>
+  </header>
+
+  <!-- ═══ FEATURES ═══ -->
+  <Features />
+
+  <!-- ═══ CTA ═══ -->
+  <section class="relative mx-auto max-w-3xl px-6 py-24 text-center" data-reveal>
+    <h2 class="font-display text-3xl font-bold tracking-tight sm:text-4xl">
+      Your resume is a data problem.
+      <br class="hidden sm:block" />
+      <span class="text-[#818CF8]">Solve it with data.</span>
+    </h2>
+    <p class="mt-4 text-[15px] text-[#6B6B80]">Upload a PDF or paste plain text — the first full analysis is free, no account.</p>
+    <a href="/analyze" class="btn-primary mt-8 inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-[14px] font-semibold text-white">
+      Analyze my resume
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </a>
+  </section>
+</BaseLayout>

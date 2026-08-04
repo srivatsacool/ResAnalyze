@@ -1,0 +1,22 @@
+[
+ {
+  "index": 2,
+  "id": "4d9ba435",
+  "source": "SECTIONS = [\n    \"summary\", \"objective\", \"profile\",\n    \"experience\", \"work history\", \"employment\",\n    \"education\", \"academic\",\n    \"skills\", \"technical skills\", \"core competencies\",\n    \"projects\", \"certifications\", \"publications\",\n    \"languages\", \"interests\", \"references\",\n]\nprint(f\"Known sections: {len(SECTIONS)}\")\nfor s in SECTIONS: print(f\"  - {s}\")"
+ },
+ {
+  "index": 4,
+  "id": "985a2120",
+  "source": "import re\n\nSECTION_PATTERNS = {s: re.compile(r\"^\" + re.escape(s), re.IGNORECASE) for s in SECTIONS}\n\ndef detect_sections(text):\n    lines = text.split(\"\\n\")\n    sections = []\n    for i, line in enumerate(lines):\n        line_stripped = line.strip()\n        if not line_stripped: continue\n        for section_name, pattern in SECTION_PATTERNS.items():\n            if pattern.search(line_stripped):\n                # Check it looks like a header (short, possibly all-caps)\n                if len(line_stripped) < 40:\n                    sections.append((section_name, i, line_stripped))\n                    break\n    return sections\n\nresume = \"\"\"SUMMARY\nData scientist with Python and ML experience.\n\nEXPERIENCE\nGoogle — Senior Data Scientist, 2020-Present\nBuilt ML pipelines.\n\nEDUCATION\nM.S. Computer Science, Stanford University\n\nSKILLS\nPython, TensorFlow, PyTorch, SQL, AWS\n\"\"\"\nfor name, idx, header in detect_sections(resume):\n    print(f\"  Line {idx}: [{name:15s}] '{header}'\")"
+ },
+ {
+  "index": 6,
+  "id": "3dadcc08",
+  "source": "# Use zero-shot classification for section detection\nfrom transformers import pipeline\ntry:\n    classifier = pipeline(\"zero-shot-classification\", model=\"facebook/bart-large-mnli\")\n    lines = [\"Professional Summary\", \"Work Experience\", \"Education\", \"Skills & Expertise\"]\n    for line in lines:\n        result = classifier(line, SECTIONS)\n        print(f\"  '{line:25s}' -> {result['labels'][0]:15s} ({result['scores'][0]:.2f})\")\nexcept:\n    print(\"Transformers not available. Regex approach works fine for most resumes.\")"
+ },
+ {
+  "index": 8,
+  "id": "ef8a9029",
+  "source": "def extract_section_content(text, section_name):\n    \"\"\"Extract all content under a detected section.\"\"\"\n    lines = text.split(\"\\n\")\n    in_section = False\n    content = []\n    for line in lines:\n        ls = line.strip()\n        if not ls: continue\n        # Check if this line is a section header\n        is_header = False\n        for sn, pat in SECTION_PATTERNS.items():\n            if pat.search(ls) and len(ls) < 40:\n                if in_section:\n                    in_section = False  # found next section\n                if sn == section_name.lower():\n                    in_section = True\n                break\n        else:\n            if in_section and ls:\n                content.append(ls)\n    return content\n\nprint(\"Content under 'experience':\")\nprint(extract_section_content(resume, \"experience\"))"
+ }
+]

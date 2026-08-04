@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ResAnalyze — NLP Resume Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          void: '#05050A',
+          panel: 'rgba(255,255,255,0.04)',
+          line: 'rgba(255,255,255,0.08)',
+          violetx: '#8B5CF6',
+          cyanx: '#22D3EE',
+          goldx: '#E9B949',
+          ink: '#ECECF4',
+          mute: '#8A8AA0',
+        },
+        fontFamily: {
+          display: ['Syne', 'sans-serif'],
+          body: ['"Hanken Grotesk"', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'monospace'],
+        },
+      },
+    },
+  };
+</script>
+<style>
+  :root { --scan-progress: -10%; }
+  html { scroll-behavior: smooth; scroll-padding-top: 6rem; }
+  body { background: #05050A; color: #ECECF4; font-family: 'Hanken Grotesk', sans-serif; overflow-x: hidden; }
+
+  /* ---------- ambient blobs ---------- */
+  .blob {
+    position: absolute; border-radius: 9999px; filter: blur(140px);
+    will-change: transform, opacity;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .blob-1 { width: 560px; height: 560px; left: -120px; top: -80px;
+      background: radial-gradient(circle, rgba(139,92,246,0.5), rgba(139,92,246,0) 70%);
+      animation: drift1 30s ease-in-out infinite; }
+    .blob-2 { width: 520px; height: 520px; right: -140px; top: 10%;
+      background: radial-gradient(circle, rgba(34,211,238,0.34), rgba(34,211,238,0) 70%);
+      animation: drift2 26s ease-in-out infinite; }
+    .blob-3 { width: 480px; height: 480px; left: 30%; bottom: -160px;
+      background: radial-gradient(circle, rgba(139,92,246,0.28), rgba(139,92,246,0) 70%);
+      animation: drift3 34s ease-in-out infinite; }
+    @keyframes drift1 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(70px, 50px) scale(1.15); }
+      66% { transform: translate(-40px, 90px) scale(0.95); } }
+    @keyframes drift2 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      40% { transform: translate(-80px, -60px) scale(1.2); }
+      75% { transform: translate(40px, -20px) scale(0.9); } }
+    @keyframes drift3 {
+      0%,100% { transform: translate(0,0) scale(1); }
+      50% { transform: translate(-100px, -70px) scale(1.25); } }
+  }
+  .noise {
+    position: absolute; inset: 0; opacity: 0.5; pointer-events: none;
+    background-image: radial-gradient(rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+
+  /* ---------- glass ---------- */
+  .glass {
+    background: rgba(255,255,255,0.04);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 8px 40px rgba(0,0,0,0.45);
+  }
+  .glass-deep {
+    background: rgba(10,10,18,0.62);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 24px 80px rgba(0,0,0,0.6);
+  }
+  .hairline { border: 1px solid rgba(255,255,255,0.08); }
+
+  /* ---------- entrance ---------- */
+  @media (prefers-reduced-motion: no-preference) {
+    .rise { opacity: 0; transform: translateY(24px); animation: rise .9s cubic-bezier(.2,.7,.2,1) forwards; }
+    .rise-1 { animation-delay: .05s; } .rise-2 { animation-delay: .15s; }
+    .rise-3 { animation-delay: .25s; } .rise-4 { animation-delay: .35s; }
+    .rise-5 { animation-delay: .45s; } .rise-6 { animation-delay: .6s; }
+    @keyframes rise { to { opacity: 1; transform: translateY(0); } }
+    .nav-in { opacity: 0; transform: translateY(-12px); animation: rise .7s ease forwards; animation-delay: .1s; }
+  }
+
+  /* ---------- buttons ---------- */
+  .btn-primary {
+    background: linear-gradient(135deg, #8B5CF6 0%, #22D3EE 100%);
+    box-shadow: 0 0 32px rgba(139,92,246,0.35), 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.25);
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+  }
+  .btn-primary:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 0 44px rgba(139,92,246,0.5), 0 10px 28px rgba(0,0,0,0.45); }
+  .btn-ghost { border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.03); transition: all .2s ease; }
+  .btn-ghost:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.22); }
+
+  .grad-text {
+    background: linear-gradient(120deg, #A78BFA 0%, #22D3EE 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .gold-text { color: #E9B949; }
+
+  /* ---------- console ---------- */
+  .console-card { position: relative; }
+  .console-card::before {
+    content: ""; position: absolute; inset: 0; border-radius: 1.5rem; padding: 1px;
+    background: linear-gradient(140deg, rgba(139,92,246,0.5), rgba(255,255,255,0.06) 30%, rgba(34,211,238,0.35) 70%, rgba(233,185,73,0.4));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none;
+  }
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 64px; pointer-events: none;
+    top: var(--scan-progress);
+    background: linear-gradient(to bottom, transparent, rgba(139,92,246,0.05) 30%, rgba(34,211,238,0.10) 50%, rgba(139,92,246,0.05) 70%, transparent);
+  }
+  .scan-line::before {
+    content: ""; position: absolute; top: 30px; left: 8px; right: 8px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(139,92,246,0.9) 20%, rgba(34,211,238,0.9) 50%, rgba(139,92,246,0.9) 80%, transparent);
+    box-shadow: 0 0 18px rgba(139,92,246,0.55), 0 0 42px rgba(34,211,238,0.35);
+  }
+  .res-line { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+  .chip {
+    opacity: 0.12; transform: scale(0.92); transition: opacity .35s ease, transform .35s ease;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.08em;
+    padding: 2px 8px; border-radius: 9999px; white-space: nowrap;
+  }
+  .chip.lit { opacity: 1; transform: scale(1); }
+  .chip-person { color: #C4B5FD; background: rgba(139,92,246,0.14); border: 1px solid rgba(139,92,246,0.4); box-shadow: 0 0 14px rgba(139,92,246,0.25); }
+  .chip-org    { color: #67E8F9; background: rgba(34,211,238,0.10); border: 1px solid rgba(34,211,238,0.38); box-shadow: 0 0 14px rgba(34,211,238,0.2); }
+  .chip-skill  { color: #C4B5FD; background: rgba(139,92,246,0.10); border: 1px solid rgba(139,92,246,0.3); }
+  .chip-date   { color: #A1A1B5; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.14); }
+
+  .gauge-ring { transform: rotate(-90deg); }
+  .gauge-ring circle { transition: stroke-dashoffset 1.6s cubic-bezier(.2,.7,.2,1); }
+
+  .stat-fill { transition: width 1.4s cubic-bezier(.2,.7,.2,1) .3s; width: 0; }
+
+  .pulse-dot { animation: pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+  /* ---------- marquee ---------- */
+  .marquee { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent); }
+  .marquee-track { display: flex; gap: 3rem; width: max-content; }
+  @media (prefers-reduced-motion: no-preference) {
+    .marquee-track { animation: marquee 28s linear infinite; }
+    @keyframes marquee { to { transform: translateX(-50%); } }
+  }
+
+  /* ---------- focus ---------- */
+  a:focus-visible, button:focus-visible { outline: 2px solid #22D3EE; outline-offset: 3px; border-radius: 8px; }
+</style>
+</head>
+<body class="antialiased">
+
+  <!-- ===== ambient background ===== -->
+  <div class="fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+    <div class="noise"></div>
+  </div>
+
+  <!-- ===== nav ===== -->
+  <nav class="nav-in fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[min(92vw,640px)]">
+    <div class="glass flex items-center justify-between gap-2 rounded-full pl-3 pr-2 py-2">
+      <a href="/" class="flex items-center gap-2.5 pl-1">
+        <span class="relative grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-[#8B5CF6] to-[#22D3EE] shadow-[0_0_18px_rgba(139,92,246,0.45)]">
+          <span class="h-[10px] w-[2px] rounded-full bg-white/95"></span>
+          <span class="absolute inset-x-[5px] top-1/2 h-[1.5px] -translate-y-1/2 bg-white/40"></span>
+        </span>
+        <span class="font-display text-[15px] font-bold tracking-tight">Res<span class="grad-text">Analyze</span></span>
+      </a>
+      <div class="hidden items-center gap-1 md:flex">
+        <a href="#features" class="rounded-full px-3.5 py-1.5 text-[13px] text-[#8A8AA0] transition-colors hover:text-[#ECECF4]">Features</a>
+        <a href="#how" class="rounded-full px-3.5 py-1.5 text-[13px] text-[#8A8AA0] transition-colors hover:text-[#ECECF4]">How it works</a>
+        <a href="/docs" class="rounded-full px-3.5 py-1.5 text-[13px] text-[#8A8AA0] transition-colors hover:text-[#ECECF4]">Docs</a>
+      </div>
+      <a href="/analyze" class="btn-primary rounded-full px-4 py-2 text-[13px] font-semibold text-white">Analyze resume</a>
+    </div>
+  </nav>
+
+  <!-- ===== hero ===== -->
+  <header class="relative mx-auto grid min-h-screen max-w-7xl items-center gap-14 px-6 pt-32 pb-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10 lg:pt-24">
+    <div>
+      <div class="rise rise-1 inline-flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-4 py-1.5 font-mono text-[11px] tracking-wide text-[#8A8AA0]">
+        <span class="pulse-dot h-1.5 w-1.5 rounded-full bg-[#E9B949] shadow-[0_0_8px_#E9B949]"></span>
+        NLP RESUME INTELLIGENCE — 12,483 RESUMES SCANNED
+      </div>
+
+      <h1 class="rise rise-2 mt-7 font-display text-[clamp(2.6rem,5.2vw,4.3rem)] font-extrabold leading-[1.02] tracking-[-0.02em]">
+        Know exactly why your resume gets ignored —<br class="hidden sm:block" />
+        <span class="grad-text">and how to fix it.</span>
+      </h1>
+
+      <p class="rise rise-3 mt-6 max-w-xl text-[17px] leading-relaxed text-[#8A8AA0]">
+        ResAnalyze parses your resume with natural-language models, extracts every
+        entity, and scores it the way applicant-tracking systems do.
+        <span class="text-[#ECECF4]">No opinions — just the analysis.</span>
+      </p>
+
+      <div class="rise rise-4 mt-9 flex flex-wrap items-center gap-4">
+        <a href="/analyze" class="btn-primary inline-flex items-center gap-2.5 rounded-full px-7 py-3.5 text-[15px] font-semibold text-white">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Upload resume
+        </a>
+        <a href="#how" class="btn-ghost rounded-full px-6 py-3.5 text-[15px] font-medium text-[#ECECF4]">See how it works</a>
+      </div>
+
+      <p class="rise rise-5 mt-7 font-mono text-[11px] tracking-wide text-[#5E5E72]">
+        sample scan → <span class="text-[#C4B5FD]">42 PERSON</span> · <span class="text-[#67E8F9]">18 ORG</span> · <span class="text-[#C4B5FD]">31 SKILL</span> · <span class="text-[#A1A1B5]">9 DATE</span> · free, no account
+      </p>
+    </div>
+
+    <!-- ===== signature: the analysis console ===== -->
+    <div class="rise rise-6 relative">
+      <div class="console-card glass-deep rounded-3xl">
+        <!-- console header -->
+        <div class="flex items-center justify-between border-b border-white/8 px-5 py-3.5">
+          <div class="flex items-center gap-2">
+            <span class="h-2.5 w-2.5 rounded-full bg-[#FF5F57]/70"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]/70"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-[#28C840]/70"></span>
+          </div>
+          <span class="font-mono text-[11px] text-[#8A8AA0]">resume_scan — live.log</span>
+          <span class="inline-flex items-center gap-1.5 font-mono text-[10px] tracking-widest text-[#67E8F9]">
+            <span class="pulse-dot h-1 w-1 rounded-full bg-[#22D3EE]"></span>SCANNING
+          </span>
+        </div>
+
+        <!-- scanned resume -->
+        <div id="scan-area" class="relative space-y-3.5 px-5 py-5 font-mono text-[12.5px] leading-relaxed">
+          <div class="scan-line" aria-hidden="true"></div>
+
+          <div class="res-line">
+            <span class="text-[#ECECF4] font-medium">Srivatsa Gorti</span>
+            <span class="chip chip-person" data-chip>PERSON</span>
+          </div>
+          <div class="res-line">
+            <span class="text-[#8A8AA0]">Senior Data Engineer — Engine Assembly</span>
+            <span></span>
+          </div>
+          <div class="res-line">
+            <span class="text-[#ECECF4]">Tata Motors Ltd · Jamshedpur</span>
+            <span class="chip chip-org" data-chip>ORG</span>
+          </div>
+          <div class="res-line">
+            <span class="text-[#8A8AA0]">Jun 2024 — Aug 2024</span>
+            <span class="chip chip-date" data-chip>DATE</span>
+          </div>
+          <div class="res-line">
+            <span class="text-[#8A8AA0]">▸ Built ETL pipelines · PySpark, Airflow, dbt</span>
+            <span class="chip chip-skill" data-chip>SKILL</span>
+          </div>
+          <div class="res-line">
+            <span class="text-[#8A8AA0]">▸ Cut defect-report latency by 38%</span>
+            <span></span>
+          </div>
+          <div class="res-line">
+            <span class="text-[#8A8AA0]">▸ Led Databricks migration · 15-node cluster</span>
+            <span class="chip chip-skill" data-chip>SKILL</span>
+          </div>
+        </div>
+
+        <!-- console footer: gauge + stats -->
+        <div class="flex flex-wrap items-center gap-x-8 gap-y-5 border-t border-white/8 px-5 py-5">
+          <div class="flex items-center gap-4">
+            <div class="relative h-[74px] w-[74px]">
+              <svg class="gauge-ring h-full w-full" viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="6" />
+                <circle id="gauge" cx="40" cy="40" r="34" fill="none" stroke="#E9B949" stroke-width="6"
+                  stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"
+                  style="filter: drop-shadow(0 0 6px rgba(233,185,73,0.6));" />
+              </svg>
+              <div class="absolute inset-0 grid place-items-center">
+                <span id="score" class="gold-text font-display text-[22px] font-bold leading-none">0</span>
+              </div>
+            </div>
+            <div>
+              <div class="text-[13px] font-semibold text-[#ECECF4]">ATS Match</div>
+              <div class="mt-0.5 font-mono text-[10px] tracking-wide text-[#8A8AA0]">vs. target role · senior data eng</div>
+            </div>
+          </div>
+
+          <div class="min-w-[170px] flex-1 space-y-2.5">
+            <div>
+              <div class="mb-1 flex justify-between font-mono text-[10px] tracking-wide text-[#8A8AA0]"><span>KEYWORDS</span><span class="text-[#C4B5FD]">84</span></div>
+              <div class="h-[3px] overflow-hidden rounded-full bg-white/8"><div class="stat-fill h-full rounded-full bg-gradient-to-r from-[#8B5CF6] to-[#A78BFA]" data-w="84"></div></div>
+            </div>
+            <div>
+              <div class="mb-1 flex justify-between font-mono text-[10px] tracking-wide text-[#8A8AA0]"><span>READABILITY</span><span class="text-[#67E8F9]">91</span></div>
+              <div class="h-[3px] overflow-hidden rounded-full bg-white/8"><div class="stat-fill h-full rounded-full bg-gradient-to-r from-[#22D3EE] to-[#67E8F9]" data-w="91"></div></div>
+            </div>
+            <div>
+              <div class="mb-1 flex justify-between font-mono text-[10px] tracking-wide text-[#8A8AA0]"><span>IMPACT</span><span class="text-[#A1A1B5]">76</span></div>
+              <div class="h-[3px] overflow-hidden rounded-full bg-white/8"><div class="stat-fill h-full rounded-full bg-white/40" data-w="76"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- floating tag outside console -->
+      <div class="glass absolute -left-4 -top-4 hidden items-center gap-2 rounded-full px-4 py-2 font-mono text-[10px] tracking-wider text-[#8A8AA0] lg:flex" style="animation: floaty 7s ease-in-out infinite;">
+        <span class="text-[#E9B949]">▲</span> +38% INTERVIEW RATE
+      </div>
+    </div>
+  </header>
+
+  <style>@media (prefers-reduced-motion: no-preference) { @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } } }</style>
+
+  <!-- ===== features ===== -->
+  <section id="features" class="relative mx-auto max-w-7xl px-6 pb-24">
+    <div class="mb-10 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <p class="font-mono text-[11px] tracking-[0.25em] text-[#8B5CF6]">// THE ANALYSIS</p>
+        <h2 class="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">Three lenses on your resume.</h2>
+      </div>
+      <p class="max-w-xs text-sm leading-relaxed text-[#8A8AA0]">Every scan runs the same pipeline: parse → extract → score → rewrite.</p>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-3">
+      <div class="glass group rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1">
+        <div class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-[#8B5CF6]/25 to-[#22D3EE]/15 border border-[#8B5CF6]/30 shadow-[0_0_24px_rgba(139,92,246,0.15)]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A78BFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+        </div>
+        <h3 class="mt-5 font-display text-lg font-bold">ATS Match Score</h3>
+        <p class="mt-2 text-[14px] leading-relaxed text-[#8A8AA0]">Your resume scored against the same parsing logic recruiters' systems use — and which keywords your target role is actually missing.</p>
+        <p class="mt-4 font-mono text-[10px] tracking-wider text-[#5E5E72]">spacy·ner → score</p>
+      </div>
+
+      <div class="glass group rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1">
+        <div class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-[#22D3EE]/20 to-[#8B5CF6]/15 border border-[#22D3EE]/30 shadow-[0_0_24px_rgba(34,211,238,0.15)]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#67E8F9" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        </div>
+        <h3 class="mt-5 font-display text-lg font-bold">Skill Gap Analysis</h3>
+        <p class="mt-2 text-[14px] leading-relaxed text-[#8A8AA0]">Every skill you mention, extracted and mapped against the roles you're applying for — so you see the gap before a recruiter does.</p>
+        <p class="mt-4 font-mono text-[10px] tracking-wider text-[#5E5E72]">skill-vectors · 31 detected</p>
+      </div>
+
+      <div class="glass group rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1">
+        <div class="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-[#E9B949]/20 to-[#8B5CF6]/12 border border-[#E9B949]/25 shadow-[0_0_24px_rgba(233,185,73,0.12)]">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E9B949" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3 class="mt-5 font-display text-lg font-bold">Power Verb Forge</h3>
+        <p class="mt-2 text-[14px] leading-relaxed text-[#8A8AA0]">Rewrite weak bullets into measurable impact statements. 400+ verbs, tuned for ATS parsers and the humans behind them.</p>
+        <p class="mt-4 font-mono text-[10px] tracking-wider text-[#5E5E72]">bullet-rewriter · 400+ verbs</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== marquee strip ===== -->
+  <div class="marquee border-y border-white/5 bg-white/[0.02] py-4" aria-hidden="true">
+    <div class="marquee-track font-mono text-[11px] tracking-[0.3em] text-[#5E5E72]">
+      <span class="flex items-center gap-12"><span>PERSON</span><span class="text-[#8B5CF6]">◆</span><span>ORG</span><span class="text-[#22D3EE]">◆</span><span>SKILL</span><span class="text-[#8B5CF6]">◆</span><span>DATE</span><span class="text-[#22D3EE]">◆</span><span class="text-[#E9B949]">ATS SCORE</span><span class="text-[#8B5CF6]">◆</span><span>KEYWORDS</span><span class="text-[#22D3EE]">◆</span><span>READABILITY</span><span class="text-[#8B5CF6]">◆</span><span>IMPACT</span><span class="text-[#22D3EE]">◆</span><span>POWER VERBS</span><span class="text-[#8B5CF6]">◆</span><span>GAP ANALYSIS</span><span class="text-[#22D3EE]">◆</span></span>
+      <span class="flex items-center gap-12"><span>PERSON</span><span class="text-[#8B5CF6]">◆</span><span>ORG</span><span class="text-[#22D3EE]">◆</span><span>SKILL</span><span class="text-[#8B5CF6]">◆</span><span>DATE</span><span class="text-[#22D3EE]">◆</span><span class="text-[#E9B949]">ATS SCORE</span><span class="text-[#8B5CF6]">◆</span><span>KEYWORDS</span><span class="text-[#22D3EE]">◆</span><span>READABILITY</span><span class="text-[#8B5CF6]">◆</span><span>IMPACT</span><span class="text-[#22D3EE]">◆</span><span>POWER VERBS</span><span class="text-[#8B5CF6]">◆</span><span>GAP ANALYSIS</span><span class="text-[#22D3EE]">◆</span></span>
+    </div>
+  </div>
+
+  <!-- ===== how it works ===== -->
+  <section id="how" class="relative mx-auto max-w-7xl px-6 py-24">
+    <div class="glass rounded-3xl p-8 sm:p-12">
+      <div class="grid items-center gap-10 lg:grid-cols-2">
+        <div>
+          <p class="font-mono text-[11px] tracking-[0.25em] text-[#22D3EE]">// THE PIPELINE</p>
+          <h2 class="mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl">One upload. Four passes.</h2>
+          <p class="mt-4 max-w-md text-[15px] leading-relaxed text-[#8A8AA0]">
+            Your resume is never sent to a model blindly. It's parsed, tagged, scored
+            and rewritten in four deterministic passes — every claim traceable to the
+            line it came from.
+          </p>
+        </div>
+        <ol class="space-y-0">
+          <li class="flex gap-5 border-l border-white/8 pb-8 pl-6 relative">
+            <span class="absolute -left-[9px] top-1 h-[17px] w-[17px] rounded-full border border-[#8B5CF6]/60 bg-[#0B0B14] shadow-[0_0_12px_rgba(139,92,246,0.5)]"></span>
+            <div>
+              <p class="font-mono text-[11px] tracking-widest text-[#8B5CF6]">PASS 01</p>
+              <h3 class="mt-1 font-display text-lg font-bold">Parse &amp; extract</h3>
+              <p class="mt-1 text-[13.5px] leading-relaxed text-[#8A8AA0]">NER pulls every person, organization, skill and date out of the raw text.</p>
+            </div>
+          </li>
+          <li class="flex gap-5 border-l border-white/8 pb-8 pl-6 relative">
+            <span class="absolute -left-[9px] top-1 h-[17px] w-[17px] rounded-full border border-[#22D3EE]/60 bg-[#0B0B14] shadow-[0_0_12px_rgba(34,211,238,0.5)]"></span>
+            <div>
+              <p class="font-mono text-[11px] tracking-widest text-[#22D3EE]">PASS 02</p>
+              <h3 class="mt-1 font-display text-lg font-bold">Score</h3>
+              <p class="mt-1 text-[13.5px] leading-relaxed text-[#8A8AA0]">ATS-style keyword density, readability and impact metrics computed per section.</p>
+            </div>
+          </li>
+          <li class="flex gap-5 border-l border-white/8 pb-8 pl-6 relative">
+            <span class="absolute -left-[9px] top-1 h-[17px] w-[17px] rounded-full border border-[#8B5CF6]/60 bg-[#0B0B14] shadow-[0_0_12px_rgba(139,92,246,0.5)]"></span>
+            <div>
+              <p class="font-mono text-[11px] tracking-widest text-[#8B5CF6]">PASS 03</p>
+              <h3 class="mt-1 font-display text-lg font-bold">Gap map</h3>
+              <p class="mt-1 text-[13.5px] leading-relaxed text-[#8A8AA0]">Your skill set is diffed against the role's required stack, line by line.</p>
+            </div>
+          </li>
+          <li class="flex gap-5 pl-6 relative">
+            <span class="absolute -left-[9px] top-1 h-[17px] w-[17px] rounded-full border border-[#E9B949]/70 bg-[#0B0B14] shadow-[0_0_12px_rgba(233,185,73,0.55)]"></span>
+            <div>
+              <p class="font-mono text-[11px] tracking-widest text-[#E9B949]">PASS 04</p>
+              <h3 class="mt-1 font-display text-lg font-bold">Rewrite</h3>
+              <p class="mt-1 text-[13.5px] leading-relaxed text-[#8A8AA0]">Weak bullets are reforged into measurable impact statements you can copy back.</p>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="relative mx-auto max-w-7xl px-6 pb-24">
+    <div class="console-card glass-deep relative overflow-hidden rounded-3xl px-8 py-16 text-center">
+      <div class="pointer-events-none absolute -left-20 -top-24 h-64 w-64 rounded-full bg-[#8B5CF6]/25 blur-[100px]"></div>
+      <div class="pointer-events-none absolute -bottom-24 -right-20 h-64 w-64 rounded-full bg-[#22D3EE]/20 blur-[100px]"></div>
+      <h2 class="relative font-display text-3xl font-extrabold tracking-tight sm:text-5xl">Your resume is a data problem.<br class="hidden sm:block" /> <span class="grad-text">Solve it with data.</span></h2>
+      <p class="relative mx-auto mt-4 max-w-md text-[15px] text-[#8A8AA0]">Upload a PDF or paste plain text — the first full analysis is free, no account.</p>
+      <a href="/analyze" class="btn-primary relative mt-8 inline-flex items-center gap-2.5 rounded-full px-8 py-4 text-[15px] font-semibold text-white">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Analyze my resume
+      </a>
+    </div>
+  </section>
+
+  <!-- ===== footer ===== -->
+  <footer class="border-t border-white/5">
+    <div class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-6 px-6 py-10 sm:flex-row">
+      <div class="flex items-center gap-2.5">
+        <span class="grid h-6 w-6 place-items-center rounded-md bg-gradient-to-br from-[#8B5CF6] to-[#22D3EE]">
+          <span class="h-[8px] w-[1.5px] rounded-full bg-white/95"></span>
+        </span>
+        <span class="font-display text-sm font-bold">Res<span class="grad-text">Analyze</span></span>
+        <span class="ml-2 font-mono text-[10px] text-[#5E5E72]">v0.4 · 70 notebooks</span>
+      </div>
+      <div class="flex items-center gap-6 font-mono text-[11px] tracking-wide text-[#8A8AA0]">
+        <a href="/analyze" class="transition-colors hover:text-[#ECECF4]">Analyze</a>
+        <a href="/docs" class="transition-colors hover:text-[#ECECF4]">Docs</a>
+        <a href="/chat" class="transition-colors hover:text-[#ECECF4]">Chat</a>
+        <a href="https://github.com/srivatsacool/ResAnalyze" class="transition-colors hover:text-[#ECECF4]">GitHub</a>
+      </div>
+      <p class="font-mono text-[10px] text-[#5E5E72]">© 2026 ResAnalyze — NLP Resume Intelligence</p>
+    </div>
+  </footer>
+
+  <script>
+    (function () {
+      var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      /* ---- gauge + count-up ---- */
+      var ring = document.getElementById('gauge');
+      var scoreEl = document.getElementById('score');
+      var CIRC = 2 * Math.PI * 34; // r=34
+      var target = 87;
+      function drawGauge() {
+        var t0 = performance.now(), dur = 1600;
+        function frame(now) {
+          var p = Math.min((now - t0) / dur, 1);
+          var eased = 1 - Math.pow(1 - p, 3);
+          ring.style.strokeDashoffset = CIRC * (1 - eased * (target / 100));
+          scoreEl.textContent = Math.round(eased * target);
+          if (p < 1) requestAnimationFrame(frame);
+        }
+        requestAnimationFrame(frame);
+      }
+      /* ---- stat bars ---- */
+      document.querySelectorAll('.stat-fill').forEach(function (el) {
+        el.style.width = el.getAttribute('data-w') + '%';
+      });
+
+      if (reduced) { ring.style.strokeDashoffset = CIRC * (1 - target / 100); scoreEl.textContent = target; return; }
+
+      /* ---- laser scan + chip lighting ---- */
+      var area = document.getElementById('scan-area');
+      var scanLine = area.querySelector('.scan-line');
+      var chips = Array.prototype.slice.call(area.querySelectorAll('[data-chip]'));
+
+      function chipTops() {
+        return chips.map(function (c) {
+          var r = c.getBoundingClientRect();
+          var a = area.getBoundingClientRect();
+          return (r.top - a.top + r.height / 2) / a.height * 100;
+        });
+      }
+
+      var progress = -12; // start above the card
+      var speed = 9;      // % per second
+      var hold = 0;
+      var lastT = 0;
+
+      function tick(now) {
+        if (!lastT) lastT = now;
+        var dt = Math.min((now - lastT) / 1000, 0.05); // seconds, clamped
+        lastT = now;
+        if (hold > 0) { hold -= dt; requestAnimationFrame(tick); return; }
+        progress += speed * dt;
+        if (progress > 104) { // cycle complete -> pause, reset
+          progress = -12;
+          hold = 1.8;
+          chips.forEach(function (c) { c.classList.remove('lit'); });
+          requestAnimationFrame(tick);
+          return;
+        }
+        var tops = chipTops();
+        chips.forEach(function (c, i) {
+          if (progress >= tops[i] - 2) c.classList.add('lit');
+        });
+        document.documentElement.style.setProperty('--scan-progress', progress + '%');
+        requestAnimationFrame(tick);
+      }
+
+      drawGauge();
+      setTimeout(function () { lastT = 0; tick(0); }, 700);
+    })();
+  </script>
+</body>
+</html>

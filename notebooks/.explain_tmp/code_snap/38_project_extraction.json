@@ -1,0 +1,12 @@
+[
+ {
+  "index": 2,
+  "id": "6d031d47",
+  "source": "project_text = \"\"\"PROJECTS\nResume Intelligence Platform | Python, NLP, TensorFlow\n- Built end-to-end resume parsing and ATS scoring system\n- Achieved 92% accuracy on skill extraction\n\nSentiment Analysis Dashboard | Python, Flask, React\n- Real-time sentiment analysis for 10K+ tweets/day\n- Deployed on AWS with 99.9% uptime\n\nE-commerce Recommendation Engine | Python, Spark, MongoDB\n- Collaborative filtering for 1M+ users\n- Increased conversion rate by 25%\n\"\"\"\nprint(\"Projects often have: Name, Tech Stack, Bullets with outcomes\")"
+ },
+ {
+  "index": 4,
+  "id": "b5412a60",
+  "source": "import re\n\ndef extract_projects(text):\n    projects = []\n    lines = text.split(\"\\n\")\n    current = None\n    for line in lines:\n        ls = line.strip()\n        if not ls: continue\n        # Project header: Name | Tech Stack\n        proj_match = re.match(r\"^([A-Za-z\\s]+)\\s*[|]\\s*(.+)$\", ls)\n        if proj_match:\n            if current: projects.append(current)\n            current = {\"name\": proj_match.group(1).strip(), \"tech\": proj_match.group(2).strip(), \"bullets\": []}\n            continue\n        bullet = re.sub(r\"^[\\s•\\-*–]+\", \"\", ls)\n        if bullet and current:\n            current[\"bullets\"].append(bullet)\n    if current: projects.append(current)\n    return projects\n\nfor p in extract_projects(project_text):\n    print(f\"\\n  {p['name']:35s} | {p['tech']}\")\n    for b in p['bullets']:\n        print(f\"    - {b}\")"
+ }
+]

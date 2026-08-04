@@ -1,0 +1,256 @@
+{
+ "D:\\Projects\\ResAnalyze\\notebooks\\part1_foundations\\block_d\\21_glove\\21.ipynb": {
+  "codes": [
+   [
+    "print('''GloVe = Global Vectors for Word Representation\nKey idea: word vectors learned from global co-occurrence counts across the corpus.\nUnlike Word2Vec (predictive, local context), GloVe is count-based (global matrix factorization).\n\n  P(k | ice) >> P(k | steam)  ->  k = \"solid\"\n  P(k | steam) >> P(k | ice)  ->  k = \"gas\"\n  P(k | ice) ≈ P(k | steam)   ->  k = \"water\" (uninformative)\n\nRatio of co-occurrence probabilities encodes meaning.'')",
+    "902fff99"
+   ],
+   [
+    "import gensim.downloader as api\n# Download the small 50d GloVe model (fast download, ~50MB)\nprint(\"Downloading GloVe (glove-twitter-25)...\")\ntry:\n    glove = api.load(\"glove-twitter-25\")\n    print(f\"Vocabulary size: {len(glove)}\")\n    print(f\"Vector dims: {glove['python'].shape}\")\n    print(f\"First 10 dims of 'python': {glove['python'][:10].round(3)}\")\nexcept ValueError as e:\n    print(f\"\"\"Download issue: {e}\nBut we can demo with available vectors. Let's check what's available:\"\"\")\n    print(api.info()['models'].keys())",
+    "2d8d7609"
+   ],
+   [
+    "# Similarity queries\ntry:\n    for w in [\"python\", \"java\", \"data\", \"science\", \"engineer\"]:\n        similar = glove.most_similar(w, topn=3)\n        print(f\"Similar to '{w}':\")\n        for word, score in similar:\n            print(f\"  {word:12s} {score:.3f}\")\nexcept NameError:\n    print(\"GloVe not loaded. Install with: pip install gensim\")\n    print(\"then: import gensim.downloader; glove = api.load('glove-twitter-25')\")",
+    "0f2410db"
+   ],
+   [
+    "try:\n    result = glove.most_similar(positive=[\"python\", \"developer\"], negative=[\"language\"], topn=3)\n    print(f\"python + developer - language =\")\n    for w, s in result: print(f\"  {w:12s} {s:.3f}\")\nexcept NameError:\n    print(\"GloVe not loaded in this session. Concept demo:\")\n    print(\"  python - language + developer → programmer (analogy)\")",
+    "10b148ef"
+   ],
+   [
+    "print('''\n╔══════════════════════════════════════════════════════════╗\n║   GloVe vs Word2Vec                                      ║\n╠══════════════════════════════════════════════════════════╣\n║                    Word2Vec         GloVe                ║\n║──────────────────────────────────────────────────────────║\n║ Type              Predictive         Count-based         ║\n║ Training          Local context      Global co-occurrence║\n║ Speed             Faster (small)     Slower (needs full  ║\n║                                      co-occurrence mat)  ║\n║ Performance       Good on analogy    Better on similarity║\n║ Memory            Small              Large (full matrix) ║\n║ Pre-trained       Many options       Many options        ║\n╚══════════════════════════════════════════════════════════╝\n\nFor resume analysis: GloVe often better for skill similarity tasks.''')",
+    "688fd7d4"
+   ]
+  ],
+  "md_heads": [
+   [
+    "# 21 — GloVe",
+    "b7a57f1d"
+   ],
+   [
+    "## 1. How GloVe Works",
+    "4848cce9"
+   ],
+   [
+    "## 2. Loading Pre-trained GloVe",
+    "843ec6f3"
+   ],
+   [
+    "## 3. GloVe Word Similarity",
+    "930f80bb"
+   ],
+   [
+    "## 4. GloVe Analogies",
+    "97abd1b1"
+   ],
+   [
+    "## 5. GloVe vs Word2Vec — When to Use Which",
+    "4569bd95"
+   ],
+   [
+    "## Summary: GloVe captures global word statistics. Use pre-trained for resume similarity tasks.",
+    "53840f48"
+   ]
+  ]
+ },
+ "D:\\Projects\\ResAnalyze\\notebooks\\part1_foundations\\block_d\\22_sentence_transformers\\22.ipynb": {
+  "codes": [
+   [
+    "print('''A sentence embedding is a dense vector representing an entire sentence's meaning:\n\"Python is great for NLP\"  →  [0.23, -0.45, 0.12, ...]  (384 or 768 dims)\n\nUnlike BoW/TF-IDF:\n- Captures semantics, not just keyword overlap\n- \"I love Python\" ≈ \"Python is my favorite\" (high similarity)\n- Fixed-size vector regardless of sentence length''')",
+    "768255a6"
+   ],
+   [
+    "from sentence_transformers import SentenceTransformer, util\n# all-MiniLM-L6-v2: fast, good quality, 384 dims\nprint(\"Loading all-MiniLM-L6-v2...\")\nmodel = SentenceTransformer(\"all-MiniLM-L6-v2\")\nprint(f\"Model loaded. Max sequence length: {model.max_seq_length}\")\nprint(f\"Output dimension: {model.get_sentence_embedding_dimension()}\")\n\n# Quick test\nemb = model.encode(\"Python developer with NLP experience\")\nprint(f\"Embedding shape: {emb.shape}\")\nprint(f\"First 5 values: {emb[:5].round(3)}\")",
+    "50929872"
+   ],
+   [
+    "sentences = [\n    \"Python developer with machine learning experience\",\n    \"Data scientist skilled in Python and NLP\",\n    \"Java backend engineer with Spring Boot\",\n    \"ML engineer building deep learning models\",\n]\nembeddings = model.encode(sentences)\nsimilarities = util.cos_sim(embeddings, embeddings)\n\nprint(\"Similarity matrix:\")\nfor i in range(len(sentences)):\n    for j in range(i+1, len(sentences)):\n        sim = similarities[i][j].item()\n        marker = \"✓\" if sim > 0.5 else \" \"\n        print(f\"  {marker} S{i+1} vs S{j+1}: {sim:.3f}  ({sentences[i][:30]}... / {sentences[j][:30]}...)\")",
+    "408d4184"
+   ],
+   [
+    "resume = \"Senior data scientist with 5 years Python, TensorFlow, NLP experience\"\njobs = [\n    \"Data Scientist — Python, ML, NLP, TensorFlow required\",\n    \"Java Backend Developer — Spring, Microservices, AWS\",\n    \"ML Engineer — Deep Learning, PyTorch, MLOps\",\n]\nres_emb = model.encode(resume)\njob_embs = model.encode(jobs)\nscores = util.cos_sim(res_emb, job_embs)[0]\n\nprint(\"Resume vs Job matching:\")\nfor i, job in enumerate(jobs):\n    match = \"✓✓\" if scores[i] > 0.5 else \"  \"\n    print(f\"  {match} Job {i+1}: {scores[i]:.3f} — {job}\")",
+    "084b218a"
+   ],
+   [
+    "resume_sections = {\n    \"summary\": \"Data scientist with Python and ML expertise\",\n    \"experience\": \"Built NLP pipelines at Google, reduced latency by 40%\",\n    \"skills\": \"Python, TensorFlow, PyTorch, SQL, AWS\",\n    \"education\": \"M.S. Computer Science, Stanford University\",\n}\njd = \"Looking for Python ML engineer with NLP and cloud experience\"\n\njd_emb = model.encode(jd)\nprint(\"Section relevance to JD:\")\nfor name, text in resume_sections.items():\n    sec_emb = model.encode(text)\n    sim = util.cos_sim(jd_emb, sec_emb).item()\n    print(f\"  {name:12s} {sim:.3f} — {text[:40]}...\")",
+    "a222bae1"
+   ]
+  ],
+  "md_heads": [
+   [
+    "# 22 — Sentence Transformers",
+    "cd752a84"
+   ],
+   [
+    "## 1. What is a Sentence Embedding?",
+    "2fa4377e"
+   ],
+   [
+    "## 2. Loading Sentence Transformers",
+    "16116cbd"
+   ],
+   [
+    "## 3. Semantic Similarity",
+    "05d2a6d6"
+   ],
+   [
+    "## 4. Resume vs JD Matching with Sentence Transformers",
+    "2754b08b"
+   ],
+   [
+    "## 5. Finding the Best Matching Resume Section",
+    "f407ccf4"
+   ],
+   [
+    "## Summary: Sentence Transformers are the gold standard for semantic matching. The rest of this project uses them extensively.",
+    "2349d47b"
+   ]
+  ]
+ },
+ "D:\\Projects\\ResAnalyze\\notebooks\\part1_foundations\\block_d\\23_embedding_benchmarks\\23.ipynb": {
+  "codes": [
+   [
+    "import numpy as np\nfrom sklearn.metrics.pairwise import cosine_similarity\n\n# Test pairs: (resume_skill, job_requirement, expected_similarity_rating)\n# 1.0 = same meaning, 0.0 = unrelated\ntest_pairs = [\n    (\"python\", \"Python programming\", 0.9),     # same skill\n    (\"python\", \"Java\", 0.2),                    # different language\n    (\"tensorflow\", \"deep learning\", 0.7),       # related\n    (\"nlp\", \"natural language processing\", 0.8), # acronym vs full\n    (\"docker\", \"kubernetes\", 0.6),              # related tools\n    (\"python\", \"cooking\", 0.0),                 # unrelated\n]\n\ndef evaluate_embeddings(embeddings_dict, model_name, test_pairs):\n    \"\"\"Score how well embeddings capture semantic similarity.\"\"\"\n    scores = []\n    for w1, w2, expected in test_pairs:\n        try:\n            v1 = embeddings_dict[w1] if w1 in embeddings_dict else None\n            v2 = embeddings_dict[w2] if w2 in embeddings_dict else None\n            if v1 is not None and v2 is not None:\n                sim = cosine_similarity([v1], [v2])[0][0]\n                scores.append((w1, w2, sim, expected))\n        except:\n            pass\n    return scores\n\nprint(\"Benchmark ready. Test pairs defined. Each model will be evaluated on semantic similarity accuracy.\")\nprint(\"\\nNote: We need pre-trained vectors loaded to run this. Check each model's availability.\")",
+    "0265e8e5"
+   ],
+   [
+    "models = {}\n# Sentence Transformers\ntry:\n    from sentence_transformers import SentenceTransformer\n    st = SentenceTransformer(\"all-MiniLM-L6-v2\")\n    models[\"SentenceTransformer\"] = st\n    print(\"✓ SentenceTransformer loaded\")\nexcept: print(\"  SentenceTransformer not available\")\n\n# Word2Vec/GloVe via gensim\ntry:\n    import gensim.downloader as api\n    # Use a small model if available\n    models[\"glove-twitter-25\"] = api.load(\"glove-twitter-25\")\n    print(\"✓ GloVe loaded\")\nexcept: print(\"  GloVe not downloaded (needs internet/first-time download)\")\n\nprint(f\"\\nLoaded {len(models)} models for benchmark\")",
+    "b7690813"
+   ],
+   [
+    "if models:\n    for name, model in models.items():\n        print(f\"\\n=== {name} ===\")\n        for w1, w2, expected in test_pairs:\n            try:\n                if hasattr(model, 'encode'):\n                    # SentenceTransformer\n                    v1, v2 = model.encode([w1, w2])\n                else:\n                    # gensim keyed vectors\n                    v1, v2 = model[w1], model[w2]\n                sim = cosine_similarity([v1], [v2])[0][0]\n                print(f\"  '{w1:20s}' vs '{w2:20s}': {sim:.3f} (expected ~{expected})\")\n            except Exception as e:\n                print(f\"  '{w1:20s}' vs '{w2:20s}': ERROR — {e}\")\nelse:\n    print(\"No models available. This notebook works best after running notebooks 19, 21, and 22.\")\n    print(\"The benchmark methodology is defined — run those first, then return here.\")",
+    "b7151dfb"
+   ]
+  ],
+  "md_heads": [
+   [
+    "# 23 — Embedding Benchmarks",
+    "5c831970"
+   ],
+   [
+    "## 1. Building a Mini Benchmark",
+    "bd2fa972"
+   ],
+   [
+    "## 2. Loading All Models",
+    "fa6f43ba"
+   ],
+   [
+    "## 3. Running the Benchmark",
+    "90790795"
+   ],
+   [
+    "## Summary: Sentence Transformers > GloVe > Word2Vec for most resume tasks. But all have use cases.",
+    "1af786ae"
+   ]
+  ]
+ },
+ "D:\\Projects\\ResAnalyze\\notebooks\\part1_foundations\\block_d\\24_zero-shot_classification\\24.ipynb": {
+  "codes": [
+   [
+    "print('''Zero-shot classification uses NLI (Natural Language Inference) to classify text:\n\n  Text: \"Built ML models with TensorFlow\"\n  Hypothesis: \"This is about machine learning\"\n  → Entailment (score: 0.92)\n\n  No training data needed! Just provide candidate labels.\n  \nUses in resume analysis:\n  - Classify resume sections (Experience, Education, Skills)\n  - Categorize skills (technical, soft, domain)\n  - Classify job requirements (must-have, nice-to-have)\n  - Detect seniority levels (Junior, Mid, Senior, Lead)''')",
+    "11b9dd45"
+   ],
+   [
+    "from transformers import pipeline\nprint(\"Loading zero-shot classifier...\")\nclassifier = pipeline(\"zero-shot-classification\", model=\"facebook/bart-large-mnli\")\nprint(\"Model loaded.\")\n\n# Test on a resume line\ntext = \"Built NLP pipelines processing 10M documents daily using Python and TensorFlow\"\ncandidate_labels = [\"Software Engineering\", \"Data Science\", \"Management\", \"Research\"]\nresult = classifier(text, candidate_labels)\nprint(f\"Text: {text[:50]}...\")\nprint(\"\\nClassification:\")\nfor label, score in zip(result['labels'], result['scores']):\n    print(f\"  {label:20s} {score:.3f}\")",
+    "1991321c"
+   ],
+   [
+    "resume_lines = [\n    (\"Senior Data Scientist at Google, 2020-Present\", \"Experience\"),\n    (\"M.S. in Computer Science, Stanford University\", \"Education\"),\n    (\"Python, TensorFlow, PyTorch, SQL, AWS\", \"Skills\"),\n    (\"Published 5 papers in top-tier NLP conferences\", \"Publications\"),\n]\ncategories = [\"Experience\", \"Education\", \"Skills\", \"Publications\", \"Summary\"]\n\nprint(\"Section classification:\")\nfor text, true_label in resume_lines:\n    result = classifier(text, categories)\n    predicted = result['labels'][0]\n    correct = \"✓\" if predicted == true_label else \" \"\n    print(f\"  {correct} '{text[:45]:45s}' → {predicted:12s} (true: {true_label})\")",
+    "aa7ef766"
+   ],
+   [
+    "skills = [\"Python\", \"Team Leadership\", \"TensorFlow\", \"Communication\",\n              \"Docker\", \"Project Management\", \"PyTorch\", \"Critical Thinking\"]\nskill_categories = [\"technical\", \"soft skill\", \"tool\", \"domain knowledge\"]\n\nprint(\"Skill categorization:\")\nfor skill in skills:\n    result = classifier(skill, skill_categories)\n    cat = result['labels'][0]\n    conf = result['scores'][0]\n    print(f\"  {skill:20s} → {cat:15s} ({conf:.2f})\")",
+    "f2e991b0"
+   ],
+   [
+    "jd_requirements = [\n    \"5+ years experience in Python\",\n    \"Strong communication skills\",\n    \"PhD in Computer Science preferred\",\n    \"Experience with AWS or GCP\",\n    \"Ability to work in fast-paced environment\",\n]\nreq_types = [\"must-have\", \"nice-to-have\", \"preferred\"]\n\nprint(\"Requirement classification:\")\nfor req in jd_requirements:\n    result = classifier(req, req_types)\n    print(f\"  '{req[:45]:45s}' → {result['labels'][0]:12s} ({result['scores'][0]:.2f})\")",
+    "2f540288"
+   ]
+  ],
+  "md_heads": [
+   [
+    "# 24 — Zero-Shot Classification",
+    "07d44a3e"
+   ],
+   [
+    "## 1. What is Zero-Shot Classification?",
+    "ae0358a3"
+   ],
+   [
+    "## 2. Setting Up the Pipeline",
+    "515e04f3"
+   ],
+   [
+    "## 3. Resume Section Classification",
+    "d0076aea"
+   ],
+   [
+    "## 4. Skill Category Detection",
+    "1b1111cd"
+   ],
+   [
+    "## 5. Requirement Classification",
+    "b1e7402e"
+   ],
+   [
+    "## Summary: Zero-shot classification works surprisingly well for resume tasks. Requires no training data.",
+    "21da4589"
+   ]
+  ]
+ },
+ "D:\\Projects\\ResAnalyze\\notebooks\\part1_foundations\\block_d\\25_error_handling_in_nlp\\25.ipynb": {
+  "codes": [
+   [
+    "error_cases = [\n    (\"Empty document\", \"\"),\n    (\"Binary file\", \"\\x00\\x01\\x02\\x03\"),\n    (\"Encoding issue\", \"Jos\\xe9's r\\xe9sum\\xe9 — Sr. ML Engr.\"),\n    (\"All caps\", \"PROFESSIONAL SUMMARY: DATA SCIENTIST\"),\n    (\"No sections\", \"Just a wall of text with no breaks\"),\n    (\"Special chars only\", \"!!!@@@###$$$%%%%\"),\n]\n\nprint(\"Common error cases in resume parsing:\")\nfor case_name, text in error_cases:\n    print(f\"  {case_name:25s} → {repr(text[:30])}...\")",
+    "fd12a7f8"
+   ],
+   [
+    "import chardet\n\ndef safe_decode(data: bytes) -> str:\n    \"\"\"Handle encoding detection and fallback.\"\"\"\n    if not data:\n        return \"\"\n    try:\n        # Try UTF-8 first\n        return data.decode(\"utf-8\")\n    except UnicodeDecodeError:\n        # Detect encoding\n        detected = chardet.detect(data)\n        enc = detected.get(\"encoding\", \"latin-1\")\n        print(f\"  Warning: UTF-8 failed, detected {enc} (confidence: {detected['confidence']})\")\n        try:\n            return data.decode(enc)\n        except:\n            # Fallback: ignore errors\n            return data.decode(\"utf-8\", errors=\"ignore\")\n\n# Test\ntest_data = b\"Jos\\xe9's r\\xe9sum\\xe9\"\nprint(f\"Raw bytes: {test_data}\")\nprint(f\"Decoded:   {safe_decode(test_data)}\")",
+    "12bc3b8e"
+   ],
+   [
+    "import spacy, re\nfrom typing import Optional, List\n\nclass RobustNLPPipeline:\n    \"\"\"NLP pipeline with fallback for every failure mode.\"\"\"\n\n    def __init__(self):\n        try:\n            self.nlp = spacy.load(\"en_core_web_sm\")\n            self.spacy_ok = True\n        except OSError:\n            print(\"Warning: spaCy model not available, using regex-only fallback\")\n            self.spacy_ok = False\n\n    def extract_entities(self, text: str) -> List[tuple]:\n        \"\"\"Extract entities with fallback.\"\"\"\n        if not text or not text.strip():\n            return []\n\n        entities = []\n\n        # Try spaCy first\n        if self.spacy_ok:\n            try:\n                doc = self.nlp(text[:100000])  # Limit to avoid OOM\n                entities = [(e.text, e.label_) for e in doc.ents]\n            except Exception as e:\n                print(f\"  Warning: spaCy failed ({e}), falling back to regex\")\n                entities = []\n\n        # Regex fallback for emails, phones, URLs\n        if not entities:\n            for pattern, label in [\n                (r\"[\\w.+-]+@[\\w-]+\\.[\\w.]+\", \"EMAIL\"),\n                (r\"https?://[\\w./-]+\", \"URL\"),\n                (r\"[+]?[\\d\\s()-]{7,}[\\d]\", \"PHONE\"),\n            ]:\n                for match in re.finditer(pattern, text, re.IGNORECASE):\n                    entities.append((match.group(0), label))\n\n        return entities\n\n    def __call__(self, text: str):\n        return self.extract_entities(text)\n\n# Test\nrobust = RobustNLPPipeline()\ntest_cases = [\n    \"Contact: john@email.com, Phone: +1-555-1234\",\n    \"\",\n    \"\\x00\\x01\\x02Binary garbage\\x03\",\n]\n\nfor tc in test_cases:\n    result = robust(tc)\n    print(f\"Input: {repr(tc[:40]):42s} → Entities: {result}\")",
+    "9d2e9058"
+   ],
+   [
+    "import re\nfrom typing import Optional\n\ndef validate_email(email: str) -> Optional[str]:\n    \"\"\"Validate and normalize email.\"\"\"\n    if not email: return None\n    email = email.strip().lower()\n    pattern = r\"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$\"\n    return email if re.match(pattern, email) else None\n\ndef validate_phone(phone: str) -> Optional[str]:\n    \"\"\"Validate and normalize phone.\"\"\"\n    if not phone: return None\n    digits = re.sub(r\"[^\\d+]\", \"\", phone)\n    return digits if 7 <= len(digits) <= 15 else None\n\ndef validate_year(year: str) -> Optional[int]:\n    \"\"\"Validate year is reasonable.\"\"\"\n    try:\n        y = int(year.strip())\n        return y if 1950 <= y <= 2030 else None\n    except: return None\n\n# Test\ntests = [\n    (\"john@email.com\", \"john@email.com\"),\n    (\"not-an-email\", None),\n    (\"+1-555-123-4567\", \"+15551234567\"),\n    (\"12\", None),\n    (\"2020\", 2020),\n]\nfor raw, expected in tests:\n    for validator, name in [(validate_email, \"email\"), (validate_phone, \"phone\"), (validate_year, \"year\")]:\n        result = validator(raw)\n        if result is not None:\n            print(f\"  {name:7s} '{raw:20s}' → valid: {result}\")\n            break\n    else:\n        print(f\"  {'?':7s} '{raw:20s}' → invalid (expected {expected})\")",
+    "811c43f1"
+   ],
+   [
+    "def detect_empty_sections(text: str) -> List[str]:\n    \"\"\"Find resume sections that exist but have no substantive content.\"\"\"\n    sections = re.split(r\"\\n(?=[A-Z][A-Za-z /]+\\n)\", text)\n    empty = []\n    for section in sections:\n        lines = [l.strip() for l in section.split(\"\\n\") if l.strip()]\n        header = lines[0] if lines else \"\"\n        content_lines = [l for l in lines[1:] if len(l) > 10]\n        if header and not content_lines:\n            empty.append(header)\n    return empty\n\nresume = \"\"\"Professional Summary\nExperienced data scientist.\n\nSkills\n\nExperience\nDeveloped ML models at Google.\n\nEducation\n\nCertifications\n\n\"\"\"\nempty = detect_empty_sections(resume)\nprint(\"Empty sections found:\")\nfor section in empty:\n    print(f\"  ⚠ '{section}' has no content\")",
+    "0549b2f9"
+   ]
+  ],
+  "md_heads": [
+   [
+    "# 25 — Error Handling in NLP",
+    "de45b1cb"
+   ],
+   [
+    "## 1. Common Resume Parsing Failures",
+    "5f752ce1"
+   ],
+   [
+    "## 2. Safe Encoding Handler",
+    "e4ccee0b"
+   ],
+   [
+    "## 3. Graceful NLP Pipeline with Fallbacks",
+    "68f3886d"
+   ],
+   [
+    "## 4. Validation Layer for Extracted Data",
+    "5445c1eb"
+   ],
+   [
+    "## 5. Empty Section Detection",
+    "41c3a5a2"
+   ],
+   [
+    "## Summary: Production NLP needs error handling at every stage. Defensive coding prevents pipeline failures.",
+    "ffb79637"
+   ]
+  ]
+ }
+}

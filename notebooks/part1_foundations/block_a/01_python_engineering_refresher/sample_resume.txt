@@ -1,0 +1,4 @@
+Name: John Doe
+Email: john@example.com
+Skills: Python, NLP, Machine Learning, TensorFlow
+Experience: 5 years as Data Scientist

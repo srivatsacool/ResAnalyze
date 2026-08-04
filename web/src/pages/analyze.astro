@@ -1,0 +1,9 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AnalyzeManager from '../components/AnalyzeManager.jsx';
+---
+<BaseLayout title="Analyze Resume — NLP Engine | ResAnalyze" description="Upload and analyze your resume in real-time with explainable ATS metrics.">
+  <main class="container mx-auto px-4 py-28 min-h-screen relative z-10">
+    <AnalyzeManager client:only="react" />
+  </main>
+</BaseLayout>

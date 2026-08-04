@@ -1,0 +1,62 @@
+---
+import Header from '../components/Header.jsx';
+import Footer from '../components/Footer.jsx';
+import FloatingChatBubble from '../components/FloatingChatBubble.jsx';
+import TerminalEasterEgg from '../components/TerminalEasterEgg.jsx';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = "Interactive NLP-powered resume analysis" } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  </head>
+  <body class="font-body text-ink antialiased overscroll-y-auto">
+    <!-- ambient animated gradient blobs + noise -->
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+      <div class="absolute -left-[120px] -top-20 h-[560px] w-[560px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.5),transparent_70%)] blur-[140px] animate-drift-1"></div>
+      <div class="absolute right-[-140px] top-[10%] h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle,rgba(34,211,238,0.34),transparent_70%)] blur-[140px] animate-drift-2"></div>
+      <div class="absolute bottom-[-160px] left-[30%] h-[480px] w-[480px] rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.28),transparent_70%)] blur-[140px] animate-drift-3"></div>
+    </div>
+
+    <Header client:load />
+    <slot />
+    <Footer />
+    <TerminalEasterEgg client:only="react" />
+    <FloatingChatBubble client:only="react" />
+
+    <script is:inline>
+      // Scroll-triggered reveal — adds .in-view to [data-reveal] elements once.
+      (function () {
+        if (!('IntersectionObserver' in window)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var els = document.querySelectorAll('[data-reveal]');
+        if (!els.length) return;
+        var io = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('in-view');
+                io.unobserve(entry.target);
+              }
+            });
+          },
+          { threshold: 0.15, rootMargin: '0px 0px -40px 0px' }
+        );
+        els.forEach(function (el) { io.observe(el); });
+      })();
+    </script>
+  </body>
+</html>

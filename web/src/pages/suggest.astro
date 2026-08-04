@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import JobMatchEngine from '../components/JobMatchEngine.jsx';
+import PowerVerbForge from '../components/PowerVerbForge.jsx';
+---
+<BaseLayout title="Suggestions & Live Matching | ResAnalyze" description="Paste a target job description and see live connections to your resume bullets, and rewrite weak verbs.">
+  <main class="container mx-auto px-4 py-28 min-h-screen relative z-10 space-y-16">
+    <div class="mx-auto max-w-4xl text-center">
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight mb-4">
+        Suggestions & <span class="gradient-text">Live Matching</span>
+      </h1>
+      <p class="text-white/60 max-w-xl mx-auto text-sm md:text-base font-light">
+        Align your experience with target job details in real-time, and upgrade weak verbs at the Power Verb Forge.
+      </p>
+    </div>
+
+    {/* Live Matching Section */}
+    <section class="mx-auto max-w-6xl">
+      <JobMatchEngine client:only="react" />
+    </section>
+
+    {/* Power Verb Forge Section */}
+    <section class="mx-auto max-w-6xl pt-8">
+      <PowerVerbForge client:only="react" />
+    </section>
+  </main>
+</BaseLayout>

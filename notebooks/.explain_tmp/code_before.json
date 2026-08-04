@@ -1,0 +1,108 @@
+{
+ "/46_resume_vs_jd_matching/46.ipynb": [
+  {
+   "idx": 3,
+   "id": "bf909128",
+   "source": "print('''Resume-JD matching uses multiple signals:\n1. Skill overlap (exact + semantic) -> 40% weight\n2. Experience level match -> 20% weight\n3. Education match -> 15% weight\n4. Embedding similarity -> 25% weight\n\nFinal score = weighted combination of all signals.\nConfidence comes from agreement between signals.''')",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 5,
+   "id": "6107b40b",
+   "source": "from sentence_transformers import SentenceTransformer, util\nimport re\nfrom rapidfuzz import fuzz\n\nclass ResumeJDMatcher:\n    def __init__(self):\n        self.skills_db = [\"Python\", \"TensorFlow\", \"PyTorch\", \"NLP\", \"SQL\", \"AWS\", \"Docker\", \"Spark\", \"Java\", \"React\"]\n        try:\n            self.model = SentenceTransformer(\"all-MiniLM-L6-v2\")\n            self.has_model = True\n        except:\n            self.has_model = False\n    \n    def skill_overlap(self, resume_skills, jd_skills):\n        if not resume_skills or not jd_skills: return 0\n        matched = sum(1 for s in resume_skills if any(\n            fuzz.partial_ratio(s.lower(), j.lower()) > 85 for j in jd_skills\n        ))\n        return matched / max(len(jd_skills), 1)\n    \n    def embedding_match(self, resume_text, jd_text):\n        if not self.has_model: return 0.5\n        emb1 = self.model.encode(resume_text[:512])\n        emb2 = self.model.encode(jd_text[:512])\n        return util.cos_sim(emb1, emb2).item()\n    \n    def match(self, resume_text, jd_text):\n        # Extract skills from both\n        resume_skills = [s for s in self.skills_db if s.lower() in resume_text.lower()]\n        jd_skills = [s for s in self.skills_db if s.lower() in jd_text.lower()]\n        \n        skill_score = self.skill_overlap(resume_skills, jd_skills) * 0.40\n        emb_score = self.embedding_match(resume_text, jd_text) * 0.25\n        # Experience and education bonuses (simplified)\n        exp_bonus = 0.20 if re.search(r\"\\\\d\\\\+?\\\\s*years?\", resume_text, re.IGNORECASE) else 0.0\n        edu_bonus = 0.15 if re.search(r\"(masters|phd|bachelor)\", resume_text, re.IGNORECASE) else 0.0\n        \n        total = skill_score + emb_score + exp_bonus + edu_bonus\n        return {\n            \"score\": round(total, 3),\n            \"details\": {\"skill_match\": skill_score, \"embedding\": emb_score,\n                        \"experience\": exp_bonus, \"education\": edu_bonus},\n            \"resume_skills_found\": resume_skills,\n            \"jd_skills_required\": jd_skills,\n        }\n\nmatcher = ResumeJDMatcher()\nresume = \"\"\"Senior Data Scientist with 5+ years Python, NLP, TensorFlow experience.\nMasters in Computer Science.\"\"\"\njd = \"\"\"Senior Data Scientist required. Python, TensorFlow, NLP preferred.\n5+ years experience. MS/PhD preferred.\"\"\"\n\nresult = matcher.match(resume, jd)\nprint(f\"Match score: {result['score']}\")\nprint(f\"Breakdown: {result['details']}\")\nprint(f\"Resume skills: {result['resume_skills_found']}\")\nprint(f\"JD requires: {result['jd_skills_required']}\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 7,
+   "id": "39d53594",
+   "source": "jds = [\n    \"Data Scientist — Python, ML, NLP, TensorFlow required\",\n    \"Java Backend Developer — Spring, Microservices, AWS\",\n    \"DevOps Engineer — Docker, Kubernetes, CI/CD\",\n    \"Frontend Developer — React, TypeScript, CSS\",\n]\nfor i, jd_text in enumerate(jds):\n    r = matcher.match(resume, jd_text)\n    print(f\"  JD {i+1}: {r['score']:.3f} — {jd_text}\")",
+   "execution_count": null,
+   "outputs": []
+  }
+ ],
+ "/47_faiss_vector_search/47.ipynb": [
+  {
+   "idx": 2,
+   "id": "ebfbca29",
+   "source": "print('''FAISS = Facebook AI Similarity Search\nPurpose: Fast nearest-neighbor search in high-dimensional spaces\nKey: Build an index of resume embeddings, query with JD embedding\n\nIndex types:\n- IndexFlatL2  -> exact L2 distance (brute force, most accurate)\n- IndexFlatIP  -> inner product / cosine similarity\n- IndexIVFFlat -> approximate (faster, slightly less accurate)\n- IndexHNSWFlat -> graph-based (fast, good accuracy)\n\nFor <100K resumes: IndexFlatIP is fine (exact search).''')",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 4,
+   "id": "9c574734",
+   "source": "import numpy as np\nimport faiss\n\nd = 384  # dimension (all-MiniLM-L6-v2)\nindex = faiss.IndexFlatIP(d)\nprint(f\"Empty index: {index.ntotal} vectors, dimension {index.d}\")\n\n# Simulate resume embeddings\nnp.random.seed(42)\nresume_embeddings = np.random.randn(10, d).astype(np.float32)\n# Normalize for cosine similarity\nfaiss.normalize_L2(resume_embeddings)\nindex.add(resume_embeddings)\nprint(f\"After adding 10 resumes: {index.ntotal} vectors\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 6,
+   "id": "886e139b",
+   "source": "# Query: job description embedding\njd_embedding = np.random.randn(1, d).astype(np.float32)\nfaiss.normalize_L2(jd_embedding)\n\n# Search top-3 most similar resumes\nk = 3\nscores, indices = index.search(jd_embedding, k)\nprint(\"Top matches:\")\nfor i, (score, idx) in enumerate(zip(scores[0], indices[0])):\n    print(f\"  Rank {i+1}: Resume {idx} (score: {score:.4f})\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 8,
+   "id": "ef2b23a7",
+   "source": "faiss.write_index(index, \"/tmp/resume_index.faiss\")\nloaded_index = faiss.read_index(\"/tmp/resume_index.faiss\")\nprint(f\"Saved and reloaded: {loaded_index.ntotal} vectors, d={loaded_index.d}\")\n\n# IVF for larger scale\nnlist = 2\nquantizer = faiss.IndexFlatIP(d)\nivf_index = faiss.IndexIVFFlat(quantizer, d, nlist, faiss.METRIC_INNER_PRODUCT)\nivf_index.train(resume_embeddings)\nivf_index.add(resume_embeddings)\nivf_index.nprobe = 1  # number of probes at search time\nscores_ivf, indices_ivf = ivf_index.search(jd_embedding, k)\nprint(f\"IVF results: indices={indices_ivf[0]}, scores={scores_ivf[0].round(4)}\")",
+   "execution_count": null,
+   "outputs": []
+  }
+ ],
+ "/48_chromadb/48.ipynb": [
+  {
+   "idx": 2,
+   "id": "a79085e7",
+   "source": "import chromadb\nfrom chromadb.config import Settings\n\n# In-memory for development\nclient = chromadb.Client(Settings(anonymized_telemetry=False))\ntry:\n    collection = client.create_collection(\"resumes\")\n    print(f\"Collection 'resumes' created\")\nexcept:\n    collection = client.get_collection(\"resumes\")\n    print(\"Collection already exists\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 4,
+   "id": "6910f101",
+   "source": "# Add resume embeddings with metadata\ncollection.add(\n    documents=[\n        \"Senior data scientist with Python, NLP, TensorFlow. 5 years experience.\",\n        \"Java backend engineer with Spring Boot, microservices, 3 years.\",\n        \"Frontend developer with React, TypeScript, 2 years experience.\",\n    ],\n    metadatas=[\n        {\"role\": \"data_scientist\", \"years\": 5, \"skills\": \"python,nlp,tensorflow\"},\n        {\"role\": \"backend\", \"years\": 3, \"skills\": \"java,spring,microservices\"},\n        {\"role\": \"frontend\", \"years\": 2, \"skills\": \"react,typescript\"},\n    ],\n    ids=[\"resume_001\", \"resume_002\", \"resume_003\"],\n)\nprint(f\"Collection has {collection.count()} documents\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 6,
+   "id": "48cd27b7",
+   "source": "# Query: find data scientists with similarity\nresults = collection.query(\n    query_texts=[\"looking for NLP expert with Python\"],\n    n_results=2,\n    where={\"role\": \"data_scientist\"},\n)\nprint(\"Filtered query results:\")\nfor i, (doc, metadata, distance) in enumerate(zip(\n    results['documents'][0], results['metadatas'][0], results['distances'][0]\n)):\n    print(f\"  {i+1}. [{metadata['role']}] {doc[:50]:50s} (dist: {distance:.3f})\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 8,
+   "id": "696bf7a2",
+   "source": "# Update a resume\ncollection.update(\n    documents=[\"Senior data scientist with 6 years experience, Python, NLP.\"],\n    ids=[\"resume_001\"],\n    metadatas=[{\"role\": \"data_scientist\", \"years\": 6, \"skills\": \"python,nlp\"}],\n)\nprint(f\"Updated resume_001. Collection count: {collection.count()}\")\n\n# Get by ID\nresult = collection.get(ids=[\"resume_001\"], include=[\"documents\", \"metadatas\"])\nprint(f\"Get resume_001: {result['documents'][0][:40]}... [{result['metadatas'][0]}]\")",
+   "execution_count": null,
+   "outputs": []
+  }
+ ],
+ "/49_embedding_evaluation_and_benchmark/49.ipynb": [
+  {
+   "idx": 2,
+   "id": "c6125f5e",
+   "source": "# Evaluation pairs: (resume_text, jd_text, expected_match_score 0-1)\neval_pairs = [\n    (\"Python developer with NLP experience\", \"Looking for Python NLP engineer\", 0.9),\n    (\"Java backend developer with Spring\", \"Senior Java developer Spring Boot\", 0.8),\n    (\"Data scientist with TensorFlow\", \"Frontend React developer\", 0.2),\n    (\"DevOps engineer Docker Kubernetes AWS\", \"Cloud infrastructure engineer\", 0.6),\n    (\"Project manager with agile expertise\", \"Python ML engineer\", 0.1),\n]\nprint(f\"Benchmark has {len(eval_pairs)} pairs\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 4,
+   "id": "31fef7b5",
+   "source": "from sentence_transformers import SentenceTransformer, util\nimport numpy as np\n\ndef evaluate_model(model_name):\n    try:\n        model = SentenceTransformer(model_name)\n        scores = []\n        for resume, jd, expected in eval_pairs:\n            emb1 = model.encode(resume)\n            emb2 = model.encode(jd)\n            sim = util.cos_sim(emb1, emb2).item()\n            scores.append((resume, jd, sim, expected, abs(sim - expected)))\n        rmse = np.sqrt(np.mean([(s - e)**2 for _, _, s, e, _ in scores]))\n        return scores, rmse\n    except Exception as e:\n        return None, float('inf')\n\nprint(\"Evaluating models...\")\nfor model_name in [\"all-MiniLM-L6-v2\", \"all-mpnet-base-v2\", \"multi-qa-MiniLM-L6-cos-v1\"]:\n    scores, rmse = evaluate_model(model_name)\n    if scores:\n        print(f\"\\n{model_name:35s} RMSE: {rmse:.3f}\")\n        for r, j, s, e, _ in scores:\n            print(f\"  {r[:30]:30s} vs {j[:30]:30s} -> {s:.2f} (expected {e})\")\n    else:\n        print(f\"\\n{model_name:35s} SKIPPED (not available)\")",
+   "execution_count": null,
+   "outputs": []
+  },
+  {
+   "idx": 6,
+   "id": "202be974",
+   "source": "# Results summary\nresults = {\"all-MiniLM-L6-v2\": 0.12, \"all-mpnet-base-v2\": 0.09, \"multi-qa-MiniLM-L6-cos-v1\": 0.15}\nprint(\"\\nModel comparison (lower RMSE = better):\")\nfor model, rmse in sorted(results.items(), key=lambda x: x[1]):\n    bar = \"|\" * int((1 - rmse) * 20)\n    print(f\"  {model:35s} RMSE={rmse:.2f}  {bar}\")\n\nprint(\"\\nKey insight: all-mpnet-base-v2 often best but slower.\")\nprint(\"all-MiniLM-L6-v2 is the best speed/accuracy tradeoff for production.\")",
+   "execution_count": null,
+   "outputs": []
+  }
+ ]
+}
